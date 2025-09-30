@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/Index.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/nav.css">
+    <title>NewStetic - DocSigned</title>
+</head>
+<body>
+
+    <%- include('../../components/nav.ejs') %>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="main-card">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-steps">
+                    <div class="progress-line">
+                        <div class="progress-line-active" id="progressLine"></div>
+                    </div>
+                    <div class="step active" data-step="1">
+                        <div class="step-circle">1</div>
+                        <span class="step-label">Cargar Documentos</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <div class="step-circle">2</div>
+                        <span class="step-label">Agregar Firma</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <div class="step-circle">3</div>
+                        <span class="step-label">Revisar y Confirmar</span>
+                    </div>
+                    <div class="step" data-step="4">
+                        <div class="step-circle">✓</div>
+                        <span class="step-label">Completado</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Step 1: Upload Documents -->
+                <div class="step-content active" id="step1">
+                    <h2 class="step-title">📄 Cargar Documentos Individuales</h2>
+                    <p class="step-description">
+                        Seleccione o arrastre el documento que desea firmar digitalmente. 
+                        Formatos permitidos: PDF, DOC, DOCX, JPG, PNG
+                    </p>
+                    
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">Haga clic para seleccionar archivos</div>
+                        <div class="upload-subtext">o arrastre y suelte sus documentos aquí</div>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.jpg,.png">
+                    </div>
+
+                    <div class="file-list" id="fileList">
+                        <!-- Files will appear here -->
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="nextStep()">
+                            Continuar
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Add Signature -->
+                <div class="step-content" id="step2">
+                    <h2 class="step-title">✍️ Agregar Firma</h2>
+                    <p class="step-description">
+                        Dibuje su firma en el área designada o cargue una imagen de su firma
+                    </p>
+                    
+                    <div class="signature-container">
+                        <canvas class="signature-pad" id="signatureCanvas"></canvas>
+                        <img id="signaturePreview" style="display: none;">
+                        <div class="signature-tools">
+                            <!-- <button class="tool-btn" onclick="startDrawing()">🖊️ Dibujar</button> -->
+                            <input type="file" id="signatureInput" accept="image/*" style="display: none;">
+                            <button class="tool-btn" onclick="document.getElementById('signatureInput').click()">📤 Cargar imagen</button>
+                            <button class="tool-btn" onclick="clearCanvas()">🗑️ Limpiar</button>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="previousStep()">
+                            <span>←</span>
+                            Atrás
+                        </button>
+                        <button class="btn btn-primary" onclick="nextStep()">
+                            Continuar
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Review -->
+                <div class="step-content" id="step3">
+                    <h2 class="step-title">👁️ Revisar y Confirmar</h2>
+                    <p class="step-description">
+                        Revise los documentos y su firma antes de proceder con la firma digital
+                    </p>
+                    
+                    <div style="background: var(--light-bg); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <h3 style="color: var(--text-dark); margin-bottom: 1rem;">Resumen de documentos</h3>
+                        <div id="documentSummary">
+                            <!-- Document summary will appear here -->
+                        </div>
+                    </div>
+
+                    <div style="background: var(--light-bg); border-radius: 12px; padding: 1.5rem;">
+                    <h3 style="color: var(--text-dark); margin-bottom: 1rem;">Vista previa de firma</h3>
+                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 2rem; background: white; text-align: center;">
+                            <img id="signaturePreviewStep3" alt="Vista previa de firma" style="max-width: 100%; height: auto; display: none;" />
+                            <span id="signaturePlaceholder" style="color: var(--text-light);">[Firma digital]</span>
+                        </div>
+                    </div>
+
+
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="previousStep()">
+                            <span>←</span>
+                            Atrás
+                        </button>
+                        <button class="btn btn-success" onclick="signDocuments()">
+                            <span>🔏</span>
+                            Firmar Documentos
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Success -->
+                <div class="step-content" id="step4">
+                    <div class="success-container">
+                        <div class="success-icon">✓</div>
+                        <h2 class="success-title">¡Documentos Firmados Exitosamente!</h2>
+                        <p class="success-message">
+                            Sus documentos han sido firmados digitalmente y están listos para descargar.
+                            La firma digital es válida y cuenta con certificación de tiempo.
+                        </p>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-primary">
+                                <span>📥</span>
+                                Descargar Documentos
+                            </button>
+                            <button class="btn btn-secondary">
+                                <span>📧</span>
+                                Enviar por Email
+                            </button >
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <button class="btn btn-secondary" onclick="resetProcess()">
+                                Firmar Nuevos Documentos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="./js/Firmas.controller.js"></script>
+    <%- include('../../components/footer.ejs') %>
+</body>
+</html>

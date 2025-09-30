@@ -1,0 +1,36 @@
+{
+  "name": "doc_signed",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "activedirectory2": "^2.2.0",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.2",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "fernet": "^0.3.3",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "lucide": "^0.542.0",
+    "morgan": "^1.10.1",
+    "mssql": "^11.0.1",
+    "multer": "^2.0.2",
+    "nodemon": "^3.1.10",
+    "passport": "^0.7.0",
+    "passport-ldapauth": "^3.0.1",
+    "pdf-lib": "^1.17.1",
+    "read": "^4.1.0"
+  },
+  "eslintConfig": {
+    "extends": "standard"
+  }
+}

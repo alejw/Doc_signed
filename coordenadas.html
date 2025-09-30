@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Picker de Coordenadas PDF (para firmas)</title>
+<style>
+  body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:16px}
+  .wrap{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+  .panel{border:1px solid #ddd;border-radius:10px;padding:12px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  button,input{padding:8px;border:1px solid #ccc;border-radius:8px}
+  #log{font-family:ui-monospace,Consolas,monospace;font-size:12px;white-space:pre-wrap}
+  canvas{border:1px solid #ddd;border-radius:8px;width:100%;height:auto;cursor:crosshair;background:#fff}
+  .muted{color:#555}
+</style>
+</head>
+<body>
+<h1>Picker de Coordenadas para Firmas PDF</h1>
+
+<div class="row panel">
+  <div>
+    <label>📄 Carga tu PDF: <input id="file" type="file" accept="application/pdf,.pdf"></label>
+  </div>
+  <div>
+    <label>Ancho firma (pt): <input id="sigWidth" type="number" value="160" style="width:100px"></label>
+  </div>
+  <div class="muted">Sistema de coords de <b>pdf-lib</b>: origen en esquina <b>inferior izquierda</b></div>
+</div>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px;">
+      <div>Página: <span id="pageInfo">-/-</span></div>
+      <div class="row">
+        <button id="prev">← Anterior</button>
+        <button id="next">Siguiente →</button>
+        <button id="clearMarks" title="Quitar cruces dibujadas">Limpiar marcas</button>
+      </div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <div class="muted" style="margin-top:6px;">
+      Haz <b>click</b> en el punto donde debe ir la firma. Se guardará un <code>placement</code> con
+      <code>{ pageIndex, x, y, width }</code>. Repite en otras páginas si lo necesitas.
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Placements capturados</h3>
+    <div class="row" style="margin-bottom:8px;">
+      <button id="copyJson">Copiar JSON</button>
+      <button id="resetList">Reiniciar lista</button>
+    </div>
+    <div id="log">[]</div>
+    <hr/>
+    <div class="muted">
+      Pega este JSON en tu config:
+      <pre><code>placements: [ ... ]</code></pre>
+      Recuerda que <code>pageIndex</code> empieza en 0 (primera página = 0).
+    </div>
+  </div>
+</div>
+
+<!-- PDF.js como módulo y expuesto en window -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs" type="module"></script>
+<script type="module">
+  import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs";
+  window.pdfjsLib = pdfjsLib;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs";
+</script>
+
+<script>
+  const fileEl = document.getElementById('file');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const pageInfo = document.getElementById('pageInfo');
+  const sigWidthEl = document.getElementById('sigWidth');
+  const logEl = document.getElementById('log');
+  const copyBtn = document.getElementById('copyJson');
+  const resetListBtn = document.getElementById('resetList');
+  const clearMarksBtn = document.getElementById('clearMarks');
+
+  let pdfDoc = null;
+  let pageNum = 1;
+  let viewport = null;
+  let placements = [];
+
+  fileEl.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const buf = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: buf });
+    pdfDoc = await loadingTask.promise;
+    pageNum = 1;
+    await renderPage();
+    placements = [];
+    refreshLog();
+  });
+
+  prevBtn.addEventListener('click', async () => {
+    if (!pdfDoc) return;
+    pageNum = Math.max(1, pageNum - 1);
+    await renderPage();
+  });
+  nextBtn.addEventListener('click', async () => {
+    if (!pdfDoc) return;
+    pageNum = Math.min(pdfDoc.numPages, pageNum + 1);
+    await renderPage();
+  });
+
+  clearMarksBtn.addEventListener('click', async () => {
+    // solo re-renderiza la página actual (borra cruces dibujadas)
+    if (pdfDoc) await renderPage();
+  });
+
+  canvas.addEventListener('click', (e) => {
+    if (!viewport) return;
+    const rect = canvas.getBoundingClientRect();
+
+    // Coord en pixeles de pantalla -> pixeles del canvas
+    const xCss = e.clientX - rect.left;
+    const yCss = e.clientY - rect.top;
+    const xCanvas = xCss * (canvas.width / rect.width);
+    const yCanvas = yCss * (canvas.height / rect.height);
+
+    // En viewport (PDF points escalados por scale del viewport = 1 a 72dpi)
+    const xVp = xCanvas;
+    const yVp = yCanvas;
+
+    // pdf-lib usa origen abajo-izquierda: invertimos Y
+    const xPdfLib = xVp;
+    const yPdfLib = viewport.height - yVp;
+
+    const width = parseFloat(sigWidthEl.value) || 160;
+    const placement = { pageIndex: pageNum - 1, x: round2(xPdfLib), y: round2(yPdfLib), width: round2(width) };
+    placements.push(placement);
+    refreshLog();
+
+    // dibuja una pequeña cruz de referencia
+    drawCross(xCanvas, yCanvas);
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    await navigator.clipboard.writeText(JSON.stringify(placements, null, 2));
+    copyBtn.textContent = '¡Copiado!';
+    setTimeout(() => copyBtn.textContent = 'Copiar JSON', 900);
+  });
+  resetListBtn.addEventListener('click', () => { placements = []; refreshLog(); });
+
+  function refreshLog() {
+    logEl.textContent = JSON.stringify(placements, null, 2);
+  }
+  function round2(n){ return Math.round(n*100)/100; }
+
+  async function renderPage() {
+    const page = await pdfDoc.getPage(pageNum);
+    viewport = page.getViewport({ scale: 1 }); // escala 1 → 1 punto PDF = 1 px en canvas
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    const renderContext = { canvasContext: ctx, viewport };
+    await page.render(renderContext).promise;
+    pageInfo.textContent = `${pageNum} / ${pdfDoc.numPages}`;
+  }
+
+  function drawCross(x, y) {
+    ctx.save();
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y);
+    ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6);
+    ctx.stroke();
+    ctx.restore();
+  }
+</script>
+</body>
+</html>

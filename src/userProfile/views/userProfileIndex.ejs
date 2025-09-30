@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/images/logo_docsigned.png">
+    <link rel="stylesheet" href="/css/Global.css">
+    <link rel="stylesheet" href="/css/userProfile.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/nav.css">
+    <title>NewStetic - DocSigned</title>
+
+</head>
+<body>
+<%- include('../../components/nav.ejs') %>
+<main class="main-content">
+    <div class="profile-container">
+        <!-- Header del perfil -->
+        <div class="profile-header">
+            <div class="avatar">👤</div>
+            <h1 class="profile-name"><%= name %></h1>
+            <p class="profile-title"><%= user %></p>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number"><%= signedDocuments %></span>
+                    <span class="stat-label">Firmadas</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number"><%= pendingDocuments %></span>
+                    <span class="stat-label">Pendientes</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido del perfil -->
+        <div class="profile-content">
+            <div class="info-grid">
+                <!-- Información del firmante -->
+                <div class="info-section">
+                    <h3><span class="icon">👤</span> Información del Firmante</h3>
+                    <p><strong>Nombre completo:</strong> <%= name %></p>
+                    <p><strong>Email:</strong> <%= user %>@newstetic.com</p>
+                    <p><strong>Documento ID:</strong> CC <%= dni %></p>
+                    <p><strong>Estado de verificación:</strong> <span class="status-badge status-verified">Verificado</span></p>
+                    <p><strong>Organización:</strong> NEWSTETIC S.A</p>
+                </div>
+
+                <!-- Actividad de firmas -->
+                <div class="info-section">
+                    <h3><span class="icon">📊</span> Actividad de Firmas</h3>
+                    <p><strong>Documentos firmados:</strong> <%= signedDocuments %> documentos</p>
+                    <p><strong>Solicitudes pendientes:</strong> <%= pendingDocuments %> documentos</p>
+                    <p><strong>Solicitudes enviadas:</strong> <%= solicitedDocuments %> documentos</p>
+                </div>
+
+            <!-- Sección de configuración de firma -->
+           <form id="uploadForm" name="files" action="/api/userProfile/upload-signature" method="post" enctype="multipart/form-data">
+                    <div class="signature-section">
+                        <h3><span class="icon">✍️</span> Configuración de Firma</h3>
+                        
+                        <p>Adjunta la imagen de tu firma para actualizarla:</p>
+                        <input name="files" type="file" id="signatureUpload" accept="image/*">
+
+                        <div class="signature-preview">
+                            <h4>Vista previa de la firma:</h4>
+                            <div class="signature-content" id="signaturePreview">
+                                <img src="<%= urlSign %>" alt="Firma guardada">
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button type="submit" class="btn btn-primary">
+                                <span class="icon">💾</span> Guardar Firma
+                            </button>
+                        </div>
+                    </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+    <script src="/public/js/userProfile.controller.js"></script>
+    <%- include('../../components/footer.ejs') %>
+</body>
+</html>

@@ -1,0 +1,49 @@
+    
+    <header class="header-nav-gen">
+        <div class="header-content">
+            <!-- Logo Section -->
+            <div class="logo-nav">
+            
+                    <div class="logo-container-nav">
+                        <a href="/api/index">
+                            <div class="logo-icon">DS</div>
+                        </a>
+                    </div>
+
+                <span class="logo-text-nav">Doc Signed</span>
+            </div>
+            
+            <!-- Navigation Actions -->
+            <div class="header-nav">
+                <!-- Botón de Solicitudes Pendientes -->
+                <a href="/api/pending/" class="pending-requests-btn" id="pendingRequestsBtn">
+                    <!-- Icono de documentos/solicitudes -->
+                    <svg class="pending-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        <path d="M8,12H16V14H8V12M8,16H13V18H8V16Z"/>
+                    </svg>
+                    <span>Solicitudes</span>
+                    <!-- Badge con contador -->
+                    <span class="pending-badge" id="pendingCount"><%= pendingDocuments %></span>
+                </a>
+                
+                <!-- User Info -->
+                <div class="user-info">
+                    <a href="/api/userProfile">
+                        <button type="button" class="user-role">👤</button>
+                    </a>
+                    
+                    <!-- Logout Button -->
+                    <form action="/api/auth/logout" method="post" class="logout-form">
+                        <button type="submit" class="logout-btn">
+                            <svg class="logout-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z"/>
+                            </svg>
+                            <span>Salir</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+

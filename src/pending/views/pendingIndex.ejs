@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/Global.css">
+    <link rel="stylesheet" href="/css/pending.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/nav.css">
+    <link rel="icon" type="image/png" href="/images/logo_docsigned.png">
+    <title>NewStetic - DocSigned</title>
+</head>
+ <%- include('../../components/nav.ejs') %>
+<body>
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon pending">📄</div>
+                <div class="stat-content">
+                    <div class="stat-number" id="pendingNumber"><%= pendingDocuments %></div>
+                    <div class="stat-label">Solicitudes Pendientes</div>
+                    <div class="stat-change positive"></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon signed">✓</div>
+                <div class="stat-content">
+                    <div class="stat-number" id="signedNumber"><%= signedDocuments %></div>
+                    <div class="stat-label">Documentos Firmados</div>
+                    <div class="stat-change positive"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="content-header">
+                <h2 class="content-title">Gestión de Documentos</h2>
+                <p class="content-subtitle">
+                    Selecciona el estado de firma que deseas visualizar. 
+                    Puedes alternar entre documentos pendientes y firmados.
+                </p>
+            </div>
+
+            <div class="filter-section">
+                <div class="toggle-switch">
+                    <button 
+                        class="toggle-option left <%= status === 'PENDIENTE' ? 'active' : 'inactive' %>" 
+                        id="pendingOption" 
+                        data-status="PENDIENTE"
+                        onclick="toggleFilter('pending')">
+                        PENDIENTE
+                    </button>
+                    <button 
+                        class="toggle-option right <%= status === 'FIRMADO' ? 'active' : 'inactive' %>" 
+                        id="signedOption" 
+                        data-status="FIRMADO"
+                        onclick="toggleFilter('signed')">
+                        FIRMADO
+                    </button>
+                </div>
+            </div>
+
+        
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Detalles de la Solicitud</h2>
+                            <button class="btn-sign-all" id="signAllBtn" onclick=''>
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M9 12l2 2 4-4"/>
+                                    <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/>
+                                </svg>
+                                Firmar Todos
+                            </button>
+                        <span id="closeModalBtn" class="close">&times;</span>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="detalles-grid">
+                            <div class="detalles-info"></div>
+                            <div class="pdf-preview">
+                                <iframe id="pdfViewer" width="100%" height="500px"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="documentsContainer">
+                <div class="documents-grid" id="pendingDocuments">
+                    <% if (pendingDocs && pendingDocs.length > 0) { %>
+                    <% pendingDocs.forEach(function(doc) { %>
+                        <div class="document-card" data-id="<%= doc.id_registro_solicitud %>">
+                            <div class="document-header">
+                                <div>
+                                    <div class="document-title">Tipo de documento: <%= doc.estado_solicitud%></div>
+                                    <div class="document-date">Fecha: <%= doc.fecha_solicitud ? new Date(doc.fecha_solicitud).toLocaleDateString('es-ES') : '' %></div>
+                                </div>
+                                <div class="document-status <%= doc.estado_solicitud === 'PENDIENTE' ? 'status-pending' : 'status-signed' %>">
+                                                <%= doc.estado_solicitud %>
+                                </div>
+                            </div>
+                            <div class="document-user">Usuario: <%= doc.nombre_usuario %> (<%= doc.cedula %>)</div>
+                            <div class="document-info">Tipo de solicitud: <%= doc.tipo_solicitud %></div>
+                            <div class="document-info">ID Solicitud: <%= doc.id_registro_solicitud %></div>
+                        </div>
+                    <% }); %>
+                    <% } else { %>
+                        <div>No hay solicitudes pendientes.</div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/pending.controller.js"></script>
+<%- include('../../components/footer.ejs') %>
+</body>
+</html>

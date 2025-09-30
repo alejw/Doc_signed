@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/Global.css">
+    <link rel="stylesheet" href="/css/Index.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/nav.css">
+    <link rel="icon" type="image/png" href="/images/logo_docsigned.png">
+
+    <title>NewStetic - DocSigned</title>
+</head>
+<body>
+
+   <%- include('../../components/nav.ejs') %>
+<br>
+  <div class="hero">
+        <div class="hero-content">
+            <div class="decorative-line"></div>
+            <h1 class="section-title">Elige el Tipo de Firma</h1>
+            <p class="section-subtitle">
+                Selecciona el método de firma que mejor se adapta tus necesidades. 
+                Ambas opciones están diseñadas para diferentes casos de uso.
+            </p>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="card-container bulk-sign">
+            <p>Firmar Masivamente</p>
+             <a href="/api/masivesign/">
+                <svg class="icon-sign" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 2a2 2 0 0 1 1.414.586l4 4A2 2 0 0 1 21 8v7a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                    <path d="M15 2v4a2 2 0 0 0 2 2h4"/>
+                    <path d="M5 7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 1.732-1"/>
+                </svg>
+            </a>
+            <ul class="card-features">
+                <li>Firma automática con imagen pregrabada</li>
+                <li>Procesamiento masivo de documentos</li>
+                <li>Ideal para documentación rutinaria</li>
+                <li>Respuesta inmediata</li>
+            </ul>
+        </div>
+        
+        <div class="card-container individual-sign">
+            <p>Firmar Individualmente</p>
+            <a href="#" style="pointer-events: none; color: #aaa;">
+                <svg class="icon-sign" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                </svg>
+            </a>
+            <ul class="card-features">
+                <li>Firma documento por documento</li>
+                <li>Integración con Adobe Sign</li>
+                <li>Cumplimiento normativo total</li>
+                <li>Auditoría y trazabilidad completa</li>
+            </ul>
+
+
+            <!--<button class="btn-go">
+                <a href="/api/sign/">Entrar</a>
+            </button> -->
+        </div>
+    </div>
+
+    <!-- Coming Soon Features -->
+    <div class="coming-soon">
+        <h3 class="coming-soon-title">🚀 Próximas Funcionalidades</h3>
+        <p class="coming-soon-text">
+            Estamos trabajando en nuevas características para mejorar tu experiencia de firma digital
+        </p>
+        
+        <div class="feature-preview">
+            <div class="preview-item">
+                <strong>Modulo de Firma Individual</strong>
+                <span>Integración con Adobe Sign</span>
+            </div>
+        </div>
+    </div>
+    <%- include('../../components/footer.ejs') %>
+
+</body>
+</html>
