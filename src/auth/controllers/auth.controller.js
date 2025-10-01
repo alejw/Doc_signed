@@ -33,7 +33,7 @@ exports.login = async (req, res) => {
     
 
     //si las credenciales son validas, llamo la funcion que captura la info del usuario
-    const userInfoValid = await findUserInAD(username); //username trae el nombre de usuario sin el dominio
+    const userInfoValid = await findUserInAD(username, password); //username trae el nombre de usuario sin el dominio
     if (!userInfoValid)//si no se encuentra info del usuario
       return res.render('auth/views/auth', { 
         error: 'No se encontró información del usuario'

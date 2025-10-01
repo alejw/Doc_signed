@@ -1,4 +1,4 @@
- let isDrawing = false;
+let isDrawing = false;
         let canvas, ctx;
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -113,7 +113,19 @@
             }
         }
 
-        //este codigo es para enviar mensaje advirtiendo que no ha adjuntado ningun archivo
+        // Agregar event listener para mostrar vista previa cuando se seleccione un archivo
+        document.getElementById('signatureUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('signaturePreview').src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Mantener el código existente de validación del formulario
         document.querySelector('form[name="files"]').addEventListener('submit', function(event) {
             const files = document.getElementById('signatureUpload').files;
             if (files.length === 0) {

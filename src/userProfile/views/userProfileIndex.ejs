@@ -11,70 +11,132 @@
     <title>NewStetic - DocSigned</title>
 
 </head>
-<body>
 <%- include('../../components/nav.ejs') %>
+<br>
+<body>
+
+
 <main class="main-content">
     <div class="profile-container">
         <!-- Header del perfil -->
         <div class="profile-header">
-            <div class="avatar">👤</div>
-            <h1 class="profile-name"><%= name %></h1>
-            <p class="profile-title"><%= user %></p>
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-number"><%= signedDocuments %></span>
-                    <span class="stat-label">Firmadas</span>
+            <div class="header-content">
+                <div class="avatar-container">
+                    <div class="avatar">👤</div>
+                    <div class="status-indicator"></div>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number"><%= pendingDocuments %></span>
-                    <span class="stat-label">Pendientes</span>
+                
+                <div class="user-info">
+                    <h1 class="profile-name"><%= name %></h1>
+                    <p class="profile-title">
+                        <%= user %>@newstetic.com
+                        <span class="verified-badge">
+                            ✓ Verificado
+                        </span>
+                    </p>
+                    
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-number"><%= signedDocuments %></span>
+                            <span class="stat-label">Firmadas</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number"><%= pendingDocuments %></span>
+                            <span class="stat-label">Pendientes</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number"><%= solicitedDocuments %></span>
+                            <span class="stat-label">Enviadas</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Contenido del perfil -->
         <div class="profile-content">
-            <div class="info-grid">
+            <div class="content-grid">
                 <!-- Información del firmante -->
-                <div class="info-section">
-                    <h3><span class="icon">👤</span> Información del Firmante</h3>
-                    <p><strong>Nombre completo:</strong> <%= name %></p>
-                    <p><strong>Email:</strong> <%= user %>@newstetic.com</p>
-                    <p><strong>Documento ID:</strong> CC <%= dni %></p>
-                    <p><strong>Estado de verificación:</strong> <span class="status-badge status-verified">Verificado</span></p>
-                    <p><strong>Organización:</strong> NEWSTETIC S.A</p>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">👤</div>
+                        <h2 class="card-title">Información del Firmante</h2>
+                    </div>
+                    
+                    <div class="info-row">
+                        <span class="info-label">Nombre completo</span>
+                        <span class="info-value"><%= name %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value"><%= user %>@newstetic.com</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Documento ID</span>
+                        <span class="info-value">CC <%= dni %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Estado</span>
+                        <span class="info-value">
+                            <span class="status-badge status-verified">✓ Verificado</span>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Organización</span>
+                        <span class="info-value">NEWSTETIC S.A</span>
+                    </div>
                 </div>
 
                 <!-- Actividad de firmas -->
-                <div class="info-section">
-                    <h3><span class="icon">📊</span> Actividad de Firmas</h3>
-                    <p><strong>Documentos firmados:</strong> <%= signedDocuments %> documentos</p>
-                    <p><strong>Solicitudes pendientes:</strong> <%= pendingDocuments %> documentos</p>
-                    <p><strong>Solicitudes enviadas:</strong> <%= solicitedDocuments %> documentos</p>
+                
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">📊</div>
+                        <h2 class="card-title">Actividad de Firmas</h2>
+                    </div>
+                    
+                    <div class="info-row">
+                        <span class="info-label">Documentos firmados</span>
+                        <span class="info-value"><%= signedDocuments %> documentos</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Solicitudes pendientes</span>
+                        <span class="info-value"><%= pendingDocuments %> documentos</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Solicitudes enviadas</span>
+                        <span class="info-value"><%= solicitedDocuments %> documentos</span>
+                    </div>
                 </div>
 
-            <!-- Sección de configuración de firma -->
-           <form id="uploadForm" name="files" action="/api/userProfile/upload-signature" method="post" enctype="multipart/form-data">
-                    <div class="signature-section">
-                        <h3><span class="icon">✍️</span> Configuración de Firma</h3>
-                        
-                        <p>Adjunta la imagen de tu firma para actualizarla:</p>
-                        <input name="files" type="file" id="signatureUpload" accept="image/*">
+                <!-- Configuración de firma -->
+                <form id="uploadForm" name="files" action="/api/userProfile/upload-signature" method="post" enctype="multipart/form-data" class="card signature-card">
+                    <div class="card-header">
+                        <div class="card-icon">✍️</div>
+                        <h2 class="card-title">Configuración de Firma</h2>
+                    </div>
 
-                        <div class="signature-preview">
-                            <h4>Vista previa de la firma:</h4>
-                            <div class="signature-content" id="signaturePreview">
-                                <img src="<%= urlSign %>" alt="Firma guardada">
-                            </div>
-                        </div>
+                    <label for="signatureUpload" class="upload-area">
+                        <div class="upload-icon">📤</div>
+                        <div class="upload-text">Arrastra tu firma aquí o haz clic para seleccionar</div>
+                        <div class="upload-hint">Formatos soportados: PNG, JPG, SVG (Máx. 2MB)</div>
+                        <input type="file" id="signatureUpload" name="files" accept="image/*">
+                    </label>
 
-                        <div class="action-buttons">
-                            <button type="submit" class="btn btn-primary">
-                                <span class="icon">💾</span> Guardar Firma
-                            </button>
+                    <div class="signature-preview">
+                        <div class="preview-title">Vista previa de tu firma:</div>
+                        <div class="preview-image">
+                            <img src="<%= urlSign %>" alt="Firma guardada" id="signaturePreview">
                         </div>
                     </div>
-            </form>
+
+                    <button type="submit" class="btn btn-primary">
+                        <span>💾</span>
+                        Guardar Firma
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </main>
