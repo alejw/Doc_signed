@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ================== Coordenadas por formato ==================
   const COORDS = {
-    'GCLPFO-002': { pageIndex: 0, x: 120, y: 140, width: 160 }, // A38
+    'GCLPFO-002': { pageIndex: 0, x: 120, y: 140, width: 160 },
     'GCLPFO-004': { pageIndex: 0, x: 120, y: 520, width: 160 }
   };
 
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const signaturePreviewStep3 = document.getElementById('signaturePreviewStep3');
   const signaturePlaceholder  = document.getElementById('signaturePlaceholder');
 
-  // Si no hay canvas no seguimos (evita errores en páginas sin esa sección)
+  // Si no hay canvas no seguimos
   const canvasCtx = signatureCanvas?.getContext('2d');
 
   // ================== Utilidades ==================
@@ -79,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ================== Carga de documentos ==================
-  // Acumula sin duplicar (mismo nombre + tamaño + lastModified)
   function addFiles(fileListLike) {
     const incoming = Array.from(fileListLike || []);
     const toAdd = incoming.filter(f =>
@@ -93,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFileList();
     renderSummary();
 
-    // Permite volver a seleccionar el mismo archivo
     if (fileInput) fileInput.value = '';
 
     const skipped = incoming.length - toAdd.length;
@@ -123,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Render lista por índice (no por nombre)
   function renderFileList() {
     if (!fileList) return;
     fileList.innerHTML = '';
@@ -173,19 +170,17 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  // Exponer para botón eliminar
   window.removeFile = function(idx) {
     uploadedFiles.splice(idx, 1);
     renderFileList();
     renderSummary();
   };
 
-  // ================== Selección de formato ==================
+  // ================== Firma ==================
   formatSelect?.addEventListener('change', () => {
     selectedFormat = formatSelect.value || null;
   });
 
-  // ================== Firma: Canvas y carga de imagen ==================
   function resizeSignatureCanvas() {
     if (!signatureCanvas || !canvasCtx) return;
     const rect = signatureCanvas.getBoundingClientRect();
@@ -202,17 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
   resizeSignatureCanvas();
   window.addEventListener('resize', resizeSignatureCanvas);
 
-  // Dibujo simple
-
-
-
-
-  // Limpiar firma
   window.clearCanvas = function(){
     if (!signatureCanvas || !canvasCtx) return;
     const ratio = window.devicePixelRatio || 1;
     canvasCtx.setTransform(1,0,0,1,0,0);
-    signatureCanvas.width = signatureCanvas.width; // reset
+    signatureCanvas.width = signatureCanvas.width;
     canvasCtx.scale(ratio, ratio);
     canvasCtx.fillStyle = '#ffffff';
     canvasCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
@@ -220,7 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
     canvasCtx.lineWidth = 2;
     drewOnCanvas = false;
 
-    // ocultar preview de imagen subida si existía
     if (signaturePreview) {
       signaturePreview.style.display = 'none';
       signaturePreview.src = '';
@@ -230,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSignaturePreviewStep3();
   };
 
-  // Adjuntar imagen de firma
   signatureInput?.addEventListener('change', async () => {
     const file = signatureInput.files && signatureInput.files[0];
     if (!file) return;
@@ -244,16 +231,15 @@ document.addEventListener('DOMContentLoaded', () => {
       signaturePreview.src = signatureBlobUrl;
       signaturePreview.style.display = 'block';
     }
-    drewOnCanvas = false; // preferimos la imagen cargada
+    drewOnCanvas = false;
     updateSignaturePreviewStep3();
   });
 
-  // Vista previa de firma (Paso 3)
   function isCanvasBlank(cv) {
     const ctx = cv.getContext('2d');
     const { data } = ctx.getImageData(0, 0, cv.width, cv.height);
     for (let i = 3; i < data.length; i += 4) {
-      if (data[i] !== 0) return false; // alpha > 0
+      if (data[i] !== 0) return false;
     }
     return true;
   }
@@ -275,50 +261,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-// ================== ================== ================== ==================
-  //CODIGO PARA NAVEGACION DE PASOS
-// ================== ================== ================== ==================
+  // ================== Navegación de pasos ==================
   function updateProgressLine() {
     if (!progressLine) return;
     const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
     progressLine.style.width = progressPercentage + '%';
   }
 
-function goToStep(n) {
-    // Actualizar paso actual
+  function goToStep(n) {
     currentStep = n;
-    
-    // Actualizar contenido de los pasos
+
     stepContents.forEach((content, index) => {
-        if (index + 1 === currentStep) {
-            content.classList.add('active');
-        } else {
-            content.classList.remove('active');
-        }
+      if (index + 1 === currentStep) {
+        content.classList.add('active');
+      } else {
+        content.classList.remove('active');
+      }
     });
-    
-    // Actualizar indicadores de pasos
+
     steps.forEach((step, index) => {
-        if (index + 1 < currentStep) {
-            // Pasos anteriores
-            step.classList.remove('active');
-            step.classList.add('completed');
-        } else if (index + 1 === currentStep) {
-            // Paso actual
-            step.classList.add('active');
-            step.classList.remove('completed');
-        } else {
-            // Pasos futuros
-            step.classList.remove('active', 'completed');
-        }
+      if (index + 1 < currentStep) {
+        step.classList.remove('active');
+        step.classList.add('completed');
+      } else if (index + 1 === currentStep) {
+        step.classList.add('active');
+        step.classList.remove('completed');
+      } else {
+        step.classList.remove('active', 'completed');
+      }
     });
-    
-    // Actualizar línea de progreso
+
     updateProgressLine();
-  };
+  }
 
   window.nextStep = function() {
-    // Validaciones
     if (currentStep === 1) {
       if (uploadedFiles.length === 0) {
         alert('Por favor, cargue al menos un documento antes de continuar.');
@@ -334,120 +310,65 @@ function goToStep(n) {
         return;
       }
     }
-       if (currentStep === totalSteps) {
-      // Si estamos en el último paso, crear y enviar el FormData
-      const formData = new FormData();
-      
-      // Agregar el formato seleccionado
-      formData.append('formato', formatSelect.value);
 
-      // Agregar el representante legal seleccionado
+    if (currentStep === totalSteps) {
+      const formData = new FormData();
+      formData.append('formato', formatSelect.value);
       const representanteLegalSelect = document.getElementById('representanteLegalSelect');
       formData.append('representanteLegal', representanteLegalSelect.value);
-      
-      // Agregar cada archivo
-      uploadedFiles.forEach((file, index) => {
+      uploadedFiles.forEach(file => {
         formData.append('files', file);
       });
-      
-      // Enviar el formulario
+
       fetch('/api/masiveSign/', {
         method: 'POST',
         body: formData
       })
-      .then(response => response.json())
-      .then(data => {
-        if (data.error) {
-          alert('Error al subir los archivos: ' + data.message);
-        } else {
-          console.log('Archivos subidos exitosamente');
-          goToStep(3); // Avanzar al paso de éxito
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Error al subir los archivos');
-      });
-      
-      return false; // Prevenir el envío normal del formulario
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            alert('Error al subir los archivos: ' + data.message);
+          } else {
+            console.log('Archivos subidos exitosamente');
+            goToStep(3);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error al subir los archivos');
+        });
+
+      return false;
     }
 
-
     if (currentStep < totalSteps) {
-      document.querySelector(`[data-step="${currentStep}"]`)?.classList.add('completed');
-      document.querySelector(`[data-step="${currentStep}"]`)?.classList.remove('active');
-      document.getElementById(`step${currentStep}`)?.classList.remove('active');
-
-      currentStep++;
-      document.getElementById(`step${currentStep}`)?.classList.add('active');
-      document.querySelector(`[data-step="${currentStep}"]`)?.classList.add('active');
-
-      updateProgressLine();
-
-      if (currentStep === 3) {
-        renderSummary();
-        updateSignaturePreviewStep3();
-      }
+      goToStep(currentStep + 1);
     }
   };
 
   window.previousStep = function() {
     if (currentStep > 1) {
-        // Obtener elementos del paso actual
-        const currentStepEl = document.querySelector(`[data-step="${currentStep}"]`);
-        const currentContentEl = document.getElementById(`step${currentStep}`);
-        
-        // Remover clases del paso actual
-        if (currentStepEl) {
-            currentStepEl.classList.remove('active', 'completed');
-            currentContentEl?.classList.remove('active');
-        }
-        
-        // Decrementar el paso
-        currentStep--;
-        
-        // Activar el paso anterior
-        const previousStepEl = document.querySelector(`[data-step="${currentStep}"]`);
-        const previousContentEl = document.getElementById(`step${currentStep}`);
-        
-        if (previousStepEl && previousContentEl) {
-            previousStepEl.classList.add('active');
-            previousContentEl.classList.add('active');
-        }
-        
-        // Actualizar la línea de progreso
-        updateProgressLine();
+      goToStep(currentStep - 1);
     }
-};
+  };
 
   window.resetProcess = function() {
     window.location.href = "/api/index";
   };
 
-  // Paso 3: botón "Firmar Documentos" (prepara estado/preview)
   window.signDocuments = function() {
     updateSignaturePreviewStep3();
-    // Solo feedback; la firma real ocurre al descargar (paso 4)
     setTimeout(() => nextStep(), 400);
   };
 
-
-
-// ================== ================== ================== ==================
-  //CODIGO PARA LA FIRMA DE DOCUMENTOS
-// ================== ================== ================== ==================
-
-
-  // ================== Firma de documentos (PDF-lib) ==================
- 
-  // ================== Descarga (Paso 4) ==================
+  // ================== Firma y descarga ==================
   window.firmarDocumentoExcel = async function(){
     try {
       const { skipped } = await buildAndSignAll();
 
       if (!signedOutputs.length) {
         const msg = skipped.length
-          ? `No se firmó ningún documento.\nOmitidos:\n- ${skipped.join('\n- ')}`
+          ? `No se firmó ningún documento.\nOmitidos:\n- ${skipped.join('\n- ')}` 
           : 'No se generaron salidas.';
         alert(msg);
         return;
@@ -460,8 +381,7 @@ function goToStep(n) {
         folder.file('README.txt',
 `Archivos omitidos:
 ${skipped.map(s => '- ' + s).join('\n')}
-
-Motivo: formatos Office (DOC/DOCX/XLSX) requieren conversión previa a PDF en el navegador.
+Motivo: formatos Office requieren conversión previa a PDF en el navegador.
 `);
       }
       const blob = await zip.generateAsync({ type: 'blob' });
@@ -480,7 +400,7 @@ Motivo: formatos Office (DOC/DOCX/XLSX) requieren conversión previa a PDF en el
     }
   };
 
-  // Prevenir el envío normal del formulario
+  const uploadForm = document.getElementById('uploadForm');
   if (uploadForm) {
     uploadForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -488,8 +408,7 @@ Motivo: formatos Office (DOC/DOCX/XLSX) requieren conversión previa a PDF en el
     });
   }
 
-  // Inicialización visual
+  // Inicialización
   updateProgressLine();
   renderSummary();
 });
-

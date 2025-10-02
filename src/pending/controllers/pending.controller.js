@@ -8,7 +8,6 @@ async function pendingRender(req, res) {
     if (req.user && req.user.id_registro_usuarios) {
       pendingDocs = await getPendingDocuments(req.user.id_registro_usuarios);
     }
-    console.log(pendingDocs); 
     res.render('pending/views/pendingIndex', { pendingDocs });
   } catch (error) {
     console.error('Error al renderizar index pendientes:', error);
@@ -32,9 +31,8 @@ async function getPending(req, res) {
       status,
       pendingDocuments: pendingData.pendientes,
       signedDocuments: pendingData.firmados,
-      pendingDocs: resultPending,
+      pendingDocs: resultPending
     });
-
 
   } catch (error) {
     console.error('Error al obtener documentos pendientes:', error);

@@ -1,6 +1,6 @@
     
     <header class="header-nav-gen">
-        <div class="header-content">
+        <div class="header-content-nav">
             <!-- Logo Section -->
             <div class="logo-nav">
             
@@ -47,3 +47,65 @@
         </div>
     </header>
 
+<script>
+// Toggle Menu Móvil
+document.addEventListener('DOMContentLoaded', function() {
+  // Solo crear elementos si estamos en móvil
+  const isMobile = window.innerWidth <= 768;
+  
+  // Crear botón hamburguesa
+  const menuToggle = document.createElement('button');
+  menuToggle.className = 'menu-toggle';
+  menuToggle.id = 'menuToggle';
+  menuToggle.setAttribute('aria-label', 'Toggle menu');
+  menuToggle.innerHTML = '<span></span><span></span><span></span>';
+  
+  // Crear overlay
+  const navOverlay = document.createElement('div');
+  navOverlay.className = 'nav-overlay';
+  navOverlay.id = 'navOverlay';
+  
+  // Insertar elementos
+  const headerContent = document.querySelector('.header-content-nav');
+  const headerNav = document.querySelector('.header-nav');
+  
+  if (headerContent && headerNav) {
+    headerContent.insertBefore(menuToggle, headerNav);
+    document.querySelector('.header-nav-gen').appendChild(navOverlay);
+    
+    // Función para toggle
+    function toggleMenu() {
+      const isActive = menuToggle.classList.toggle('active');
+      headerNav.classList.toggle('active');
+      navOverlay.classList.toggle('active');
+      
+      // Prevenir scroll solo cuando el menú está activo
+      document.body.style.overflow = isActive ? 'hidden' : '';
+    }
+    
+    // Event listeners
+    menuToggle.addEventListener('click', toggleMenu);
+    navOverlay.addEventListener('click', toggleMenu);
+    
+    // Cerrar menú al hacer clic en un link
+    const navLinks = headerNav.querySelectorAll('a, button[type="submit"]');
+    navLinks.forEach(link => {
+      link.addEventListener('click', function() {
+        if (window.innerWidth <= 768 && headerNav.classList.contains('active')) {
+          toggleMenu();
+        }
+      });
+    });
+    
+    // Cerrar menu al cambiar tamaño
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768 && headerNav.classList.contains('active')) {
+        menuToggle.classList.remove('active');
+        headerNav.classList.remove('active');
+        navOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+});
+</script>

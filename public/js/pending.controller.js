@@ -7,29 +7,34 @@ function toggleFilter(filter) {
 }
 
 //desde aqui manejamos el modal y las interacciones de la vista de pendientes
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const cards = document.querySelectorAll('.document-card');
     const modal = document.getElementById("myModal");
     const closeBtn = document.getElementById("closeModalBtn");
 
     cards.forEach(card => {
         // Animaciones hover
-    card.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-5px) scale(1.02)';
-    });
+        card.addEventListener('mouseenter', function () {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+        });
 
-    card.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0) scale(1)';
-    });
+        card.addEventListener('mouseleave', function () {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
 
         // Click para mostrar modal
-    card.addEventListener('click', function() {
+        card.addEventListener('click', function () {
             const idSolicitud = this.getAttribute("data-id");
             if (currentFilter === 'pending' && idSolicitud) {
                 showModal();
                 const detallesInfo = modal.querySelector('.detalles-info');
                 detallesInfo.innerHTML = '<p class="loading">Cargando detalles...</p>';
-
+                // Función auxiliar para sumar 1 día a la fecha
+                const sumarUnDia = (fechaStr) => {
+                    const fecha = new Date(fechaStr);
+                    fecha.setDate(fecha.getDate() + 1);
+                    return fecha.toLocaleDateString('es-ES');
+                };
                 fetch(`/api/pending/detalles/${idSolicitud}`)
                     .then(res => res.json())
                     .then(data => {
@@ -38,8 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="detalle-section">
                                     <div class="detalle-header">
                                         <h3>Documento ${det.tipo_documento}</h3>
-                                        <span class="fecha">${det.fecha_solicitud ? new Date(det.fecha_solicitud).toLocaleDateString('es-ES') : 'Sin fecha'}</span>
-                                    </div>
+                                        <span class="fecha">${det.fecha_solicitud ? sumarUnDia(det.fecha_solicitud) : 'Sin fecha'}</span>
+                                    </div>  
                                     <div class="detalle-content">
                                         <p><strong>ID Detalle:</strong> ${det.id_registro_detalles}</p>
                                         <p><strong>Fecha Solicitud:</strong> ${det.fecha_solicitud ? new Date(det.fecha_solicitud).toLocaleDateString('es-ES') : 'No disponible'}</p>
@@ -57,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                   
                                 </div>
                             `).join('');
-                            
+
 
                             detallesInfo.innerHTML = detallesHtml;
 
@@ -76,10 +81,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-            
+
 
     // Función para previsualizar PDF
-    window.previewPDF = function(url) {
+    window.previewPDF = function (url) {
         const pdfViewer = document.getElementById('pdfViewer');
         if (pdfViewer) {
             // Agregar parámetros para deshabilitar herramientas de edición
@@ -106,8 +111,8 @@ document.addEventListener('DOMContentLoaded', function() {
     closeBtn.onclick = hideModal;
 
 
-    window.onclick = (e) => { 
-        if (e.target === modal) hideModal(); 
+    window.onclick = (e) => {
+        if (e.target === modal) hideModal();
     };
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') hideModal();

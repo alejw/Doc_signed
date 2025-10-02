@@ -110,32 +110,34 @@
                     </div>
                 </div>
 
-                <!-- Configuración de firma -->
-                <form id="uploadForm" name="files" action="/api/userProfile/upload-signature" method="post" enctype="multipart/form-data" class="card signature-card">
-                    <div class="card-header">
-                        <div class="card-icon">✍️</div>
-                        <h2 class="card-title">Configuración de Firma</h2>
-                    </div>
-
-                    <label for="signatureUpload" class="upload-area">
-                        <div class="upload-icon">📤</div>
-                        <div class="upload-text">Arrastra tu firma aquí o haz clic para seleccionar</div>
-                        <div class="upload-hint">Formatos soportados: PNG, JPG, SVG (Máx. 2MB)</div>
-                        <input type="file" id="signatureUpload" name="files" accept="image/*">
-                    </label>
-
-                    <div class="signature-preview">
-                        <div class="preview-title">Vista previa de tu firma:</div>
-                        <div class="preview-image">
-                            <img src="<%= urlSign %>" alt="Firma guardada" id="signaturePreview">
+                <div class="card">               <!-- Configuración de firma -->
+                    <form id="uploadForm" name="files" action="/api/userProfile/upload-signature" method="post" enctype="multipart/form-data" class="card signature-card">
+                        <div class="card-header">
+                            <div class="card-icon">✍️</div>
+                            <h2 class="card-title">Configuración de Firma</h2>
                         </div>
-                    </div>
 
-                    <button type="submit" class="btn btn-primary">
-                        <span>💾</span>
-                        Guardar Firma
-                    </button>
-                </form>
+                        <label for="signatureUpload" class="upload-area">
+                            <div class="upload-icon">📤</div>
+                            <div class="upload-text">Arrastra tu firma aquí o haz clic para seleccionar</div>
+                            <div class="upload-hint">Formatos soportados: PNG, JPG, SVG (Máx. 2MB)</div>
+                            <input type="file" id="signatureUpload" name="files" accept="image/*">
+                        </label>
+
+                        <div class="signature-preview">
+                            <div class="preview-title">Vista previa de tu firma:</div>
+                            <div class="preview-image">
+                                <img src="<%= urlSign %>" alt="Firma guardada" id="signaturePreview">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <span>💾</span>
+                            Guardar Firma
+                        </button>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>

@@ -69,7 +69,15 @@
                             <div class="document-header">
                                 <div>
                                     <div class="document-title">Tipo de documento: <%= doc.estado_solicitud%></div>
-                                    <div class="document-date">Fecha: <%= doc.fecha_solicitud ? new Date(doc.fecha_solicitud).toLocaleDateString('es-ES') : '' %></div>
+                                    <div class="document-date">
+                                        Fecha: 
+                                        <%= (() => { 
+                                                const fecha = new Date(doc.fecha_solicitud); 
+                                                fecha.setDate(fecha.getDate() + 1); 
+                                                return fecha.toLocaleDateString('es-ES'); 
+                                            })() %>
+                                    </div>
+
                                 </div>
                                 <div class="document-status <%= doc.estado_solicitud === 'PENDIENTE' ? 'status-pending' : 'status-signed' %>">
                                                 <%= doc.estado_solicitud %>
@@ -78,6 +86,7 @@
                             <div class="document-user">Usuario: <%= doc.nombre_usuario %> (<%= doc.cedula %>)</div>
                             <div class="document-info">Tipo de solicitud: <%= doc.tipo_solicitud %></div>
                             <div class="document-info">ID Solicitud: <%= doc.id_registro_solicitud %></div>
+                            
                         </div>
                     <% }); %>
                     <% } else { %>
