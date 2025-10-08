@@ -28,6 +28,7 @@
     "passport": "^0.7.0",
     "passport-ldapauth": "^3.0.1",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^3.11.174",
     "read": "^4.1.0"
   },
   "eslintConfig": {

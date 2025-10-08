@@ -4,7 +4,7 @@ const { getPending, signAllDocuments, getDetallesBySolicitud} = require('../cont
 
 router.get('/', getPending);
 router.get('/detalles/:idSolicitud', getDetallesBySolicitud );
-router.post('/', signAllDocuments);
+router.post('/:selectedDocumentId', signAllDocuments);
 
 
 module.exports = router;

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/login.css">
     <link rel="icon" type="image/png" href="/images/logo_docsigned.png">
     <title>NewStetic - DocSigned</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 <div class="split-container">
@@ -21,13 +22,33 @@
                     </div>
                 </div>
 
+<div class="hero-container">
+        <div class="hero-text">
+            <!-- Tarjeta principal -->
+            <div class="main-card">
+                <div class="circle-badge badge-digital">
+                    <div class="badge-icon">💻</div>
+                    <div class="badge-label">Digital</div>
+                </div>
+
+                <div class="circle-badge badge-team">
+                    <div class="badge-icon">✍🏻</div>
+                    <div class="badge-label">Firma</div>
+                </div>
+
                 <h1 class="hero-title">
-                    <span class="highlight">DocSigned</span>
+                    <div class="logo-badge">
+                        <img src="/images/logo_docsigned.png" alt="DocSigned Logo">
+                    </div>
+                    DocSigned
                 </h1>
                 
                 <p class="hero-subtitle">
-                    Platafotrma de firma digital masiva y individual con diseño intuitivo y fácil de usar.
+                    Plataforma de firma digital masiva e individual con diseño intuitivo y fácil de usar.
                 </p>
+            </div>
+        </div>
+    </div>
             </div>
 
             <div class="hero-features">
@@ -83,18 +104,24 @@
                     <!-- Campo de contraseña -->
                     <div class="form-group">
                         <label class="form-label" for="password">Contraseña</label>
-                        <input 
-                            type="password" 
-                            id="password"
-                            name="password"
-                            class="form-input" 
-                            placeholder="••••••••"
-                            required
-                        >
+                        <div class="password-wrapper">
+                            <input 
+                                type="password" 
+                                id="password"
+                                name="password"
+                                class="form-input" 
+                                placeholder="••••••••"
+                                required
+                            >
+                            <span class="toggle-password" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
                         <div class="error-message" style="display: none;">
                             ⚠️ La contraseña es obligatoria
                         </div>
                     </div>
+
                     
                     <!-- Botón de login -->
                     <button type="submit" class="login-btn">
@@ -109,4 +136,5 @@
         </div>
     </div>
 </body>
+<script src="/js/login.controller.js"></script>
 </html>

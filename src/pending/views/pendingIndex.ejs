@@ -68,9 +68,8 @@
                         <div class="document-card" data-id="<%= doc.id_registro_solicitud %>">
                             <div class="document-header">
                                 <div>
-                                    <div class="document-title">Tipo de documento: <%= doc.estado_solicitud%></div>
-                                    <div class="document-date">
-                                        Fecha: 
+                                    <div class="document-title">ID Solicitud: <%= doc.id_registro_solicitud %></div>
+                                    <div class="document-date">Fecha: 
                                         <%= (() => { 
                                                 const fecha = new Date(doc.fecha_solicitud); 
                                                 fecha.setDate(fecha.getDate() + 1); 
@@ -83,9 +82,9 @@
                                                 <%= doc.estado_solicitud %>
                                 </div>
                             </div>
-                            <div class="document-user">Usuario: <%= doc.nombre_usuario %> (<%= doc.cedula %>)</div>
-                            <div class="document-info">Tipo de solicitud: <%= doc.tipo_solicitud %></div>
-                            <div class="document-info">ID Solicitud: <%= doc.id_registro_solicitud %></div>
+                            <div class="document-user"><h4>Solicitante:</h4> <%= doc.nombre_usuario %> (<%= doc.cedula %>)</div>
+                            <div class="document-info"><h4>Tipo de solicitud:</h4> <%= doc.tipo_solicitud %></div>
+
                             
                         </div>
                     <% }); %>
@@ -100,13 +99,15 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h2>Detalles de la Solicitud</h2>
-                            <button class="btn-sign-all" id="signAllBtn" onclick=''>
+                        <% if (status !== 'FIRMADO') { %>
+                            <button class="btn-sign-all" id="signAllBtn" onclick='signAllDocuments()'>
                                 <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path d="M9 12l2 2 4-4"/>
                                     <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/>
                                 </svg>
                                 Firmar Todos
                             </button>
+                        <% } %>
                         <span id="closeModalBtn" class="close">&times;</span>
                     </div>
                     

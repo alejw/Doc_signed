@@ -690,6 +690,15 @@ body.modal-open {
     overflow: hidden;
 }
 
+.badge-firmado {
+    background-color: #4CAF50;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
 
 
 

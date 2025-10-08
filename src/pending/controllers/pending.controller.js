@@ -1,5 +1,8 @@
-const { getPendingDocuments, countPendingandSigned } = require('../models/pending.model');
-
+const PDFLib = require('pdf-lib');
+const {getDetallesDocuments, getPendingDocuments, countPendingandSigned, changeStateApplication, createDocumentSigned, getUserInfo
+} = require('../models/pending.model');
+// Corregir la ruta de importación
+const { uploadFileToStorage } = require('../services/uploadFileToStorage.service');
 
 
 async function pendingRender(req, res) {
@@ -31,7 +34,9 @@ async function getPending(req, res) {
       status,
       pendingDocuments: pendingData.pendientes,
       signedDocuments: pendingData.firmados,
+      dateSigned: pendingData.fecha_firma,
       pendingDocs: resultPending
+
     });
 
   } catch (error) {
@@ -44,113 +49,219 @@ async function getPending(req, res) {
 }
 
 async function getDetallesBySolicitud(req, res) {
-  const { getDetallesBySolicitud } = require('../models/pending.model');
-  const idSolicitud = req.params.idSolicitud;
-  try {
-    const detalles = await getDetallesBySolicitud(idSolicitud);
-    res.json({ detalles });
-  } catch (error) {
-    res.status(500).json({ error: true, message: 'Error interno del servidor' });
-  }
-}
-
-async function signAllDocuments({ uploadedFiles, signatureBlobUrl, drewOnCanvas, signatureCanvas, selectedFormat, COORDS }) {
-  // Validaciones iniciales
-  if (!selectedFormat || !COORDS[selectedFormat]) {
-    throw new Error('Selecciona un formato para aplicar coordenadas.');
-  }
-  if (!uploadedFiles || !uploadedFiles.length) {
-    throw new Error('No hay archivos para firmar.');
-  }
-
-  // Obtener bytes de la firma
-  let sigBytes;
-  if (signatureBlobUrl) {
-    const res = await fetch(signatureBlobUrl);
-    const blob = await res.blob();
-    sigBytes = new Uint8Array(await blob.arrayBuffer());
-  } else if (drewOnCanvas && signatureCanvas && !isCanvasBlank(signatureCanvas)) {
-    const ab = toArrayBuffer(dataURLFromCanvas(signatureCanvas));
-    sigBytes = new Uint8Array(ab);
-  } else {
-    throw new Error('No hay firma. Dibuja o carga una imagen.');
-  }
-
-  const coords = COORDS[selectedFormat];
-  const signedOutputs = [];
-  const skipped = [];
-
-  for (const f of uploadedFiles) {
+    console.log('Obteniendo detalles para la solicitud:', req.params.idSolicitud);
+    const { getDetallesDocuments } = require('../models/pending.model');
+    const idSolicitud = req.params.idSolicitud;
+    const estado = req.query.estado || 'PENDIENTE';
+    
     try {
-      let pdfBytes;
-      if (isPdf(f)) {
-        pdfBytes = new Uint8Array(await blobToArrayBuffer(f));
-      } else if (isImage(f)) {
-        // Convertir imagen a PDF
-        const { PDFDocument } = PDFLib;
-        const pdfDoc = await PDFDocument.create();
-        const bytes = new Uint8Array(await blobToArrayBuffer(f));
-        let img;
-        if (/png$/i.test(f.type) || /\.png$/i.test(f.name)) {
-          img = await pdfDoc.embedPng(bytes);
-        } else {
-          img = await pdfDoc.embedJpg(bytes);
-        }
-        const imgWidth = img.width;
-        const imgHeight = img.height;
-        const page = pdfDoc.addPage([imgWidth, imgHeight]);
-        page.drawImage(img, { x: 0, y: 0, width: imgWidth, height: imgHeight });
-        pdfBytes = await pdfDoc.save();
-      } else if (isOffice(f)) {
-        skipped.push(`${f.name} (Office) — convierte a PDF antes de firmar`);
-        continue;
-      } else {
-        skipped.push(`${f.name} (formato no soportado)`);
-        continue;
-      }
-
-      // Firmar el PDF
-      const { PDFDocument } = PDFLib;
-      const pdfDoc = await PDFDocument.load(pdfBytes);
-      const pageIndex = Math.min(coords.pageIndex ?? 0, pdfDoc.getPageCount() - 1);
-      const page = pdfDoc.getPage(pageIndex);
-
-      let sigImage;
-      try {
-        sigImage = await pdfDoc.embedPng(sigBytes);
-      } catch {
-        sigImage = await pdfDoc.embedJpg(sigBytes);
-      }
-
-      const desiredWidth = coords.width || 160;
-      const scale = desiredWidth / sigImage.width;
-      const drawWidth = desiredWidth;
-      const drawHeight = sigImage.height * scale;
-
-      const x = coords.x || 0;
-      const yTop = coords.y || 0;
-      const y = page.getHeight() - yTop - drawHeight;
-
-      page.drawImage(sigImage, { x, y, width: drawWidth, height: drawHeight, opacity: 1 });
-
-      const signed = await pdfDoc.save();
-      const outName = f.name.replace(/\.(pdf|png|jpe?g)$/i, '') + '-firmado.pdf';
-      signedOutputs.push({ name: outName, bytes: signed });
-    } catch (err) {
-      console.error('Error firmando', f.name, err);
-      skipped.push(`${f.name} (error: ${err.message})`);
+        const detalles = await getDetallesDocuments(idSolicitud, estado);
+        res.json({ detalles });
+    } catch (error) {
+        res.status(500).json({ error: true, message: 'Error interno del servidor' });
     }
-  }
-
-  return { signedOutputs, skipped };
 }
 
+async function signAllDocuments(req, res) {
+    try {
+      const { selectedFormat, COORDS } = req.body;
+      
+      // Definir userInfo al inicio
+      const userInfo = {
+        id: req.user.id_registro_usuarios,
+        selectedDocumentId: req.params.selectedDocumentId
+      };
 
+      // Validar que tengamos el formato y las coordenadas
+      if (!selectedFormat || !COORDS) {
+        return res.status(400).json({ 
+          message: 'Formato no válido o coordenadas no definidas'
+        });
+      }
+
+      const docPublicUrl = await getUserInfo(userInfo.id);
+      
+      // Agregar la URL de la firma a userInfo
+      userInfo.signaturePublicUrl = docPublicUrl.url_firma;
+
+      // Obtener las coordenadas específicas para el formato seleccionado
+      const coords = COORDS[selectedFormat];
+      if (!coords) {
+        return res.status(400).json({
+          message: `No se encontraron coordenadas para el formato ${selectedFormat}`
+        });
+      }
+
+      // Valores por defecto para las coordenadas
+      const defaultCoords = {
+        pageIndex: 0,
+        x: 0,
+        y: 0,
+        width: 160
+      };
+
+      // Combinar las coordenadas recibidas con los valores por defecto
+      const finalCoords = { ...defaultCoords, ...coords };
+
+      // Descargar la imagen de la firma
+      const sigResp = await fetch(docPublicUrl.url_firma);
+      if (!sigResp.ok) {
+        throw new Error(`Error al descargar la firma: ${sigResp.status} ${sigResp.statusText}`);
+      }
+      const sigBlob = await sigResp.blob();
+      const sigBytes = new Uint8Array(await sigBlob.arrayBuffer());
+      const estado = req.query.estado;
+      console.log('Firma descargada:', {
+        tamaño: sigBytes.length,
+        tipo: sigResp.headers.get('content-type'),
+        coordenadas: finalCoords
+      });
+
+      // Obtener los documentos asociados a la solicitud
+      const documentos = await getDetallesDocuments(req.params.selectedDocumentId, estado);
+      console.log('Documentos obtenidos:', JSON.stringify(documentos, null, 2));
+
+      if (!documentos || documentos.length === 0) {
+        return res.status(404).json({ message: 'No hay documentos para firmar.' });
+      }
+
+      const resultados = [];
+      
+      // Procesar cada documento
+      for (const doc of documentos) {
+        try {
+          if (!doc || !doc.url_archivo) {
+            console.error('Documento sin URL válida:', doc);
+            resultados.push({
+              documento: doc?.nombre_original || 'Documento sin nombre',
+              firmado: false,
+              error: 'URL del archivo no disponible'
+            });
+            continue;
+          }
+
+          console.log('Procesando documento:', {
+            nombre: doc.nombre_original,
+            url: doc.url_archivo,
+            firma: docPublicUrl.url_firma // Agregar log de la URL de la firma
+          });
+
+          // Validar formato de URL
+          if (!doc.url_archivo.startsWith('http://') && !doc.url_archivo.startsWith('https://')) {
+            console.error('URL de archivo inválida:', doc.url_archivo);
+            resultados.push({
+              documento: doc.nombre_original,
+              firmado: false,
+              error: 'URL del archivo inválida'
+            });
+            continue;
+          }
+
+          // Descargar el archivo original
+          const fileResp = await fetch(doc.url_archivo);
+          if (!fileResp.ok) {
+            throw new Error(`Error al descargar archivo: ${fileResp.status} ${fileResp.statusText}`);
+          }
+          
+          const fileBuffer = await fileResp.arrayBuffer();
+          let pdfBytes;
+
+          // Si ya es PDF lo cargamos, si es imagen la convertimos a PDF
+          if (doc.url_archivo.endsWith('.pdf')) {
+            pdfBytes = new Uint8Array(fileBuffer);
+          } else {
+            const pdfDocTmp = await PDFLib.PDFDocument.create();
+            const imgBytes = new Uint8Array(fileBuffer);
+            let img;
+            if (doc.url_archivo.endsWith('.png')) {
+              img = await pdfDocTmp.embedPng(imgBytes);
+            } else {
+              img = await pdfDocTmp.embedJpg(imgBytes);
+            }
+            const page = pdfDocTmp.addPage([img.width, img.height]);
+            page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+            pdfBytes = await pdfDocTmp.save();
+          }
+
+          // 4️⃣ Insertar la firma en el PDF
+          const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+          const pageIndex = Math.min(finalCoords.pageIndex, pdfDoc.getPageCount() - 1);
+          const page = pdfDoc.getPage(pageIndex);
+
+          let sigImage;
+          try {
+            sigImage = await pdfDoc.embedPng(sigBytes);
+          } catch (error) {
+            console.log('Error al embedPng, intentando con embedJpg:', error);
+            sigImage = await pdfDoc.embedJpg(sigBytes);
+          }
+
+          const desiredWidth = finalCoords.width;
+          const scale = desiredWidth / sigImage.width;
+          const drawWidth = desiredWidth;
+          const drawHeight = sigImage.height * scale;
+
+          const x = finalCoords.x;
+          const y = page.getHeight() - finalCoords.y - drawHeight;
+
+          page.drawImage(sigImage, { x, y, width: drawWidth, height: drawHeight, opacity: 1 });
+
+          // Guardar el PDF firmado
+          const signedPdfBytes = await pdfDoc.save();
+          const fileName = `${doc.nombre_original}-firmado.pdf`;
+          
+          // Guardar físicamente el archivo
+          const { publicUrl } = await uploadFileToStorage(signedPdfBytes, fileName);
+          
+          // Crear el registro en la base de datos
+          await createDocumentSigned(
+              publicUrl,
+              selectedFormat,
+              userInfo.id,
+              doc.id_registro_detalles,
+              userInfo.selectedDocumentId
+              
+          );
+
+          resultados.push({
+            documento: doc.nombre_original,
+            firmado: true,
+            url: publicUrl
+          });
+
+        } catch (error) {
+          console.error(`Error al procesar documento ${doc.nombre_original}:`, error);
+          resultados.push({
+            documento: doc.nombre_original,
+            firmado: false,
+            error: error.message
+          });
+        }
+      }
+
+      // Si todo salió bien, cambiar el estado de la solicitud
+      if (resultados.every(r => r.firmado)) {
+        await changeStateApplication(userInfo.selectedDocumentId);
+      }
+
+      return res.status(200).json({
+        message: 'Proceso de firma completado',
+        resultados
+      });
+
+    } catch (error) {
+      console.error('Error general:', error);
+      return res.status(500).json({
+        message: 'Error al firmar documentos.',
+        error: error.message
+      });
+    }
+}
 
 module.exports = {
   pendingRender,
   getPending,
   signAllDocuments,
-  getDetallesBySolicitud
+  getDetallesBySolicitud,
 };
 

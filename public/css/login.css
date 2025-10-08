@@ -21,8 +21,11 @@
         /* Left Side - Hero Section */
         .hero-section {
             flex: 1;
-            background: linear-gradient(135deg, var(--primary-500) 0%, #007b8e 100%);
-            padding: 60px;
+            background-image: url('/images/IMG_Labs2NS.png'); /* Cambia la ruta a tu imagen */
+            background-size: cover;          /* Hace que la imagen cubra todo el espacio */
+            background-position: center;     /* Centra la imagen */
+            background-repeat: no-repeat;    /* Evita que la imagen se repita */
+            padding: 40px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -101,25 +104,118 @@
             font-size: 14px;
             opacity: 0.9;
         }
-
-        .hero-title {
-            font-size: 52px;
-            font-weight: 700;
-            color: white;
-            line-height: 1.2;
-            margin-bottom: 24px;
+        .hero-container {
+            max-width: 800px; /* Reducido de 1200px */
+            width: 100%;
+            position: relative;
+            padding: 20px; /* Añadido padding */
         }
 
-        .hero-title .highlight {
-            color: var(--primary-800);
-            display: block;
+        .hero-text {
+            position: relative;
+            display: inline-block;
+            animation: wave 3s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { 
+                transform: translateY(0); 
+            }
+            50% { 
+                transform: translateY(-15px); 
+            }
+        }
+
+        .main-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 32px 40px;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: 30px; /* Reducido de 48px */
+            font-weight: 600;
+            color: var(--primary-500);
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Reducido de 16px */
+        }
+
+        .badge-label{
+            color: var(--bg-light);
+            font-size: 12px; /* Reducido de 14px */
+        }
+
+        .logo-badge {
+            width: 44px; /* Reducido de 56px */
+            height: 44px; /* Reducido de 56px */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px; /* Reducido de 24px */
+            font-weight: 700;
         }
 
         .hero-subtitle {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px; /* Reducido de 17px */
+            color: var(--text-900);
             line-height: 1.6;
-            max-width: 500px;
+            max-width: 460px; /* Reducido de 560px */
+        }
+
+        /* Badges circulares adheridos */
+        .circle-badge {
+            position: absolute;
+            width: 56px; /* Reducido de 72px */
+            height: 56px; /* Reducido de 72px */
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .circle-badge:hover {
+            transform: translateY(-5px);
+        }
+
+
+
+        .badge-digital {
+            top: -15px; /* Ajustado de -20px */
+            right: 80px; /* Ajustado de 100px */
+        }
+
+        .badge-team {
+            top: -25px; /* Ajustado de -35px */
+            right: 15px; /* Ajustado de 20px */
+        }
+
+        .logo-badge img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .badge-digital {
+            background: var(--primary-500);
+        }
+
+        .badge-team {
+            background: var(--primary-600);
         }
 
         .hero-features {
@@ -297,6 +393,12 @@
             color: var(--text-500);
         }
 
+        @media (max-width: 1440px) {
+            .hero-section {
+                background-position: 60% center;
+            }
+        }
+
         @media (max-width: 1024px) {
             .hero-section {
                 display: none;
@@ -304,6 +406,31 @@
 
             .login-section {
                 flex: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .split-container {
+                flex-direction: column;
+            }
+
+            .hero-section {
+                min-height: 300px;
+                padding: 30px;
+                display: block;  /* Cambiamos a block para mejor control en móviles */
+            }
+
+            .hero-title {
+                font-size: 28px;
+            }
+            
+            .circle-badge {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .hero-subtitle {
+                font-size: 14px;
             }
         }
 
@@ -324,4 +451,33 @@
             .login-logo-text {
                 font-size: 28px;
             }
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-500);
+            padding: 4px;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password:hover {
+            color: var(--text-900);
+        }
+
+        .form-input[type="password"],
+        .form-input[type="text"] {
+            padding-right: 40px;
         }
