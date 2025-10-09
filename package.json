@@ -24,12 +24,18 @@
     "morgan": "^1.10.1",
     "mssql": "^11.0.1",
     "multer": "^2.0.2",
+    "node-tesseract-ocr": "^2.2.1",
     "nodemon": "^3.1.10",
     "passport": "^0.7.0",
     "passport-ldapauth": "^3.0.1",
     "pdf-lib": "^1.17.1",
+    "pdf-poppler": "^0.2.3",
+    "pdf2image": "^1.2.3",
+    "pdf2pic": "^3.2.0",
     "pdfjs-dist": "^3.11.174",
-    "read": "^4.1.0"
+    "read": "^4.1.0",
+    "sharp": "^0.34.4",
+    "sweetalert2": "^11.25.0"
   },
   "eslintConfig": {
     "extends": "standard"

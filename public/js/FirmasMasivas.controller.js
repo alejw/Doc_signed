@@ -24,15 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const steps = Array.from(document.querySelectorAll('.step'));
   const stepContents = Array.from(document.querySelectorAll('.step-content'));
 
-
-
   // ================== Utilidades ==================
-
   function isPdf(file) {
     return file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
   }
 
-  //Aqui se convierte el tamaño a un formato legible
   function readableSize(bytes) {
     const units = ['B', 'KB', 'MB', 'GB'];
     let i = 0, b = bytes;
@@ -40,67 +36,67 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${b.toFixed(1)} ${units[i]}`;
   }
 
-
-
   // ================== ================== ================== ==================
-  //CODIGO PARA LA CARGA DE DOCUMENTOS
+  // CARGA DE DOCUMENTOS
   // ================== ================== ================== ==================
+  function addFiles(fileListLike) {
+    const incoming = Array.from(fileListLike || []);
 
-  // Acumula sin duplicar (mismo nombre + tamaño + lastModified)
-function addFiles(fileListLike) {
-  const incoming = Array.from(fileListLike || []);
+    const unique = incoming.filter(f =>
+      !uploadedFiles.some(u =>
+        u.name === f.name && u.size === f.size && u.lastModified === f.lastModified
+      )
+    );
 
-  // Filtrar duplicados
-  const unique = incoming.filter(f =>
-    !uploadedFiles.some(u =>
-      u.name === f.name && u.size === f.size && u.lastModified === f.lastModified
-    )
-  );
+    const valid = unique.filter(f => {
+      if (!isPdf(f)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Archivo no válido',
+          text: `El archivo "${f.name}" no es un PDF válido.`,
+          confirmButtonColor: '#d33'
+        });
+        return false;
+      }
+      if (!isValidFileForFormat(f, formatSelect.value)) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Formato incorrecto',
+          text: `El archivo "${f.name}" no corresponde al formato seleccionado (${formatSelect.value}).`,
+          confirmButtonColor: '#f0ad4e'
+        });
+        return false;
+      }
+      return true;
+    });
 
-  // Validar que los archivos correspondan al formato elegido
-  const valid = unique.filter(f => {
-    if (!isPdf(f)) {
-      alert(`❌ El archivo "${f.name}" no es un PDF válido.`);
-      return false;
+    uploadedFiles.push(...valid);
+
+    renderFileList();
+    renderSummary();
+
+    if (fileInput) fileInput.value = '';
+
+    const skipped = incoming.length - valid.length;
+    if (skipped > 0) {
+      console.warn(`Se omitieron ${skipped} archivo(s) por no cumplir validaciones.`);
     }
-    if (!isValidFileForFormat(f, formatSelect.value)) {
-      alert(`⚠️ El archivo "${f.name}" no corresponde al formato seleccionado (${formatSelect.value}).`);
-      return false;
-    }
-    return true;
-  });
-
-  uploadedFiles.push(...valid);
-
-  renderFileList();
-  renderSummary();
-
-  if (fileInput) fileInput.value = '';
-
-  const skipped = incoming.length - valid.length;
-  if (skipped > 0) {
-    console.warn(`Se omitieron ${skipped} archivo(s) por no cumplir validaciones.`);
   }
-}
 
-
-  //Aqui se agregan los eventos para el input de archivos
   fileInput?.addEventListener('change', (e) => {
     addFiles(e.target.files);
   });
 
-  //Aqui se agregan los eventos para el area de carga
   if (uploadArea) {
     uploadArea.addEventListener('dragover', (e) => {
       e.preventDefault();
       uploadArea.classList.add('dragover');
     });
 
-    //Aqui se quita la clase dragover la cual pone el borde azul al area de carga
     uploadArea.addEventListener('dragleave', () => {
       uploadArea.classList.remove('dragover');
     });
-    //Aqui se quita la clase dragover y se agregan los archivos al area de carga
+
     uploadArea.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadArea.classList.remove('dragover');
@@ -108,7 +104,6 @@ function addFiles(fileListLike) {
     });
   }
 
-  // Render lista por índice (no por nombre)
   function renderFileList() {
     if (!fileList) return;
     fileList.innerHTML = '';
@@ -134,7 +129,6 @@ function addFiles(fileListLike) {
     });
   }
 
-  //Aqui se actualiza la vista previa de la firma en el paso 3 con el resumen de documentos
   function renderSummary() {
     if (!documentSummary) return;
 
@@ -147,11 +141,9 @@ function addFiles(fileListLike) {
       return;
     }
 
-    // Contar solo PDFs (por seguridad)
     const pdfFiles = uploadedFiles.filter(f => isPdf(f));
     const totalPdf = pdfFiles.length;
 
-    // Renderizar lista estructurada
     documentSummary.innerHTML = `
     <div style="padding: 0.5rem;">
       <h4 style="margin-bottom: 0.5rem; color: var(--text-dark);">Resumen de documentos cargados</h4>
@@ -163,30 +155,23 @@ function addFiles(fileListLike) {
   `;
   }
 
-
-  // Exponer para botón eliminar
   window.removeFile = function (idx) {
     uploadedFiles.splice(idx, 1);
     renderFileList();
     renderSummary();
   };
 
-  // ================== Selección de formato ==================
   formatSelect?.addEventListener('change', () => {
     selectedFormat = formatSelect.value || null;
   });
 
   function isValidFileForFormat(file, selectedFormat) {
-  if (!selectedFormat) return false; // Si no hay formato elegido aún
-  const fileName = file.name.toUpperCase(); // Normalizar a mayúsculas
-  return fileName.includes(selectedFormat); // Solo válido si contiene el código
-}
+    if (!selectedFormat) return false;
+    const fileName = file.name.toUpperCase();
+    return fileName.includes(selectedFormat);
+  }
 
-
-
-  // ================== ================== ================== ==================
-  //CODIGO PARA NAVEGACION DE PASOS
-  // ================== ================== ================== ==================
+  // ================== Navegación ==================
   function updateProgressLine() {
     if (!progressLine) return;
     const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
@@ -194,72 +179,63 @@ function addFiles(fileListLike) {
   }
 
   function goToStep(n) {
-    // Actualizar paso actual
     currentStep = n;
 
-    // Actualizar contenido de los pasos
     stepContents.forEach((content, index) => {
-      if (index + 1 === currentStep) {
-        content.classList.add('active');
-      } else {
-        content.classList.remove('active');
-      }
+      content.classList.toggle('active', index + 1 === currentStep);
     });
 
-    // Actualizar indicadores de pasos
     steps.forEach((step, index) => {
-      if (index + 1 < currentStep) {
-        // Pasos anteriores
-        step.classList.remove('active');
-        step.classList.add('completed');
-      } else if (index + 1 === currentStep) {
-        // Paso actual
-        step.classList.add('active');
-        step.classList.remove('completed');
-      } else {
-        // Pasos futuros
-        step.classList.remove('active', 'completed');
-      }
+      step.classList.toggle('completed', index + 1 < currentStep);
+      step.classList.toggle('active', index + 1 === currentStep);
     });
 
-    // Actualizar línea de progreso
     updateProgressLine();
-  };
+  }
 
   window.nextStep = function () {
-    // Validaciones
     if (currentStep === 1) {
       if (uploadedFiles.length === 0) {
-        alert('Por favor, cargue al menos un documento antes de continuar.');
+        Swal.fire({
+          icon: 'warning',
+          title: 'Atención',
+          text: 'Por favor, cargue al menos un documento antes de continuar.',
+          confirmButtonColor: '#3085d6'
+        });
         return;
       }
       if (!formatSelect || !formatSelect.value) {
-        alert('Por favor, seleccione un formato antes de continuar.');
+        Swal.fire({
+          icon: 'info',
+          title: 'Formato requerido',
+          text: 'Por favor, seleccione un formato antes de continuar.',
+          confirmButtonColor: '#3085d6'
+        });
         return;
       }
       const representanteLegalSelect = document.getElementById('representanteLegalSelect');
       if (!representanteLegalSelect || !representanteLegalSelect.value) {
-        alert('Por favor, seleccione un representante legal antes de continuar.');
+        Swal.fire({
+          icon: 'info',
+          title: 'Campo obligatorio',
+          text: 'Por favor, seleccione un representante legal antes de continuar.',
+          confirmButtonColor: '#3085d6'
+        });
         return;
       }
     }
-    if (currentStep === totalSteps) {
-      // Si estamos en el último paso, crear y enviar el FormData
-      const formData = new FormData();
 
-      // Agregar el formato seleccionado
+    if (currentStep === totalSteps) {
+      const formData = new FormData();
       formData.append('formato', formatSelect.value);
 
-      // Agregar el representante legal seleccionado
       const representanteLegalSelect = document.getElementById('representanteLegalSelect');
       formData.append('representanteLegal', representanteLegalSelect.value);
 
-      // Agregar cada archivo
-      uploadedFiles.forEach((file, index) => {
+      uploadedFiles.forEach((file) => {
         formData.append('files', file);
       });
 
-      // Enviar el formulario
       fetch('/api/masiveSign/', {
         method: 'POST',
         body: formData
@@ -267,20 +243,36 @@ function addFiles(fileListLike) {
         .then(response => response.json())
         .then(data => {
           if (data.error) {
-            alert('Error al subir los archivos: ' + data.message);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error al subir archivos',
+              text: data.message || 'Hubo un problema con la carga.',
+              confirmButtonColor: '#d33'
+            });
           } else {
             console.log('Archivos subidos exitosamente');
-            goToStep(3); // Avanzar al paso de éxito
+            Swal.fire({
+              icon: 'success',
+              title: 'Éxito',
+              text: 'Los archivos se subieron correctamente.',
+              confirmButtonColor: '#28a745'
+            }).then(() => {
+              goToStep(3);
+            });
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Error al subir los archivos');
+          Swal.fire({
+            icon: 'error',
+            title: 'Error inesperado',
+            text: 'No se pudo subir los archivos.',
+            confirmButtonColor: '#d33'
+          });
         });
 
-      return false; // Prevenir el envío normal del formulario
+      return false;
     }
-
 
     if (currentStep < totalSteps) {
       document.querySelector(`[data-step="${currentStep}"]`)?.classList.add('completed');
@@ -302,33 +294,20 @@ function addFiles(fileListLike) {
 
   window.previousStep = function () {
     if (currentStep > 1) {
-      // Obtener elementos del paso actual
       const currentStepEl = document.querySelector(`[data-step="${currentStep}"]`);
       const currentContentEl = document.getElementById(`step${currentStep}`);
 
-      // Remover clases del paso actual
-      if (currentStepEl) {
-        currentStepEl.classList.remove('active', 'completed');
-        currentContentEl?.classList.remove('active');
-      }
-
-
+      currentStepEl?.classList.remove('active', 'completed');
+      currentContentEl?.classList.remove('active');
 
       const previousStep = currentStep - 1;
-
-      // Activar el paso anterior
       const previousStepEl = document.querySelector(`[data-step="${previousStep}"]`);
       const previousContentEl = document.getElementById(`step${previousStep}`);
 
-      //aq
-      if (previousStepEl && previousContentEl) {
-        previousStepEl.classList.add('active');
-        previousContentEl.classList.add('active');
-        currentStep = previousStep;
-      }
+      previousStepEl?.classList.add('active');
+      previousContentEl?.classList.add('active');
+      currentStep = previousStep;
 
-
-      // Actualizar la línea de progreso
       updateProgressLine();
     }
   };
@@ -337,10 +316,6 @@ function addFiles(fileListLike) {
     window.location.href = "/api/index";
   };
 
-
-
-
-  // Prevenir el envío normal del formulario
   if (uploadForm) {
     uploadForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -348,8 +323,6 @@ function addFiles(fileListLike) {
     });
   }
 
-  // Inicialización visual
   updateProgressLine();
   renderSummary();
 });
-

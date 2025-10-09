@@ -1,9 +1,8 @@
 const PDFLib = require('pdf-lib');
 const {getDetallesDocuments, getPendingDocuments, countPendingandSigned, changeStateApplication, createDocumentSigned, getUserInfo
 } = require('../models/pending.model');
-// Corregir la ruta de importación
 const { uploadFileToStorage } = require('../services/uploadFileToStorage.service');
-
+const signatureService = require('../../pending/services/signature.service');
 
 async function pendingRender(req, res) {
   try {
@@ -17,7 +16,6 @@ async function pendingRender(req, res) {
     res.render('pending/views/pendingIndex', { pendingDocs: [], error: 'No se pudieron cargar las solicitudes pendientes.' });
   }
 }
-
 async function getPending(req, res) {
   try {
     if (!req.user || !req.user.id_registro_usuarios) {
@@ -47,7 +45,6 @@ async function getPending(req, res) {
     });
   }
 }
-
 async function getDetallesBySolicitud(req, res) {
     console.log('Obteniendo detalles para la solicitud:', req.params.idSolicitud);
     const { getDetallesDocuments } = require('../models/pending.model');
@@ -164,50 +161,18 @@ async function signAllDocuments(req, res) {
           }
           
           const fileBuffer = await fileResp.arrayBuffer();
-          let pdfBytes;
+          const pdfBytes = new Uint8Array(fileBuffer);
 
-          // Si ya es PDF lo cargamos, si es imagen la convertimos a PDF
-          if (doc.url_archivo.endsWith('.pdf')) {
-            pdfBytes = new Uint8Array(fileBuffer);
-          } else {
-            const pdfDocTmp = await PDFLib.PDFDocument.create();
-            const imgBytes = new Uint8Array(fileBuffer);
-            let img;
-            if (doc.url_archivo.endsWith('.png')) {
-              img = await pdfDocTmp.embedPng(imgBytes);
-            } else {
-              img = await pdfDocTmp.embedJpg(imgBytes);
-            }
-            const page = pdfDocTmp.addPage([img.width, img.height]);
-            page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
-            pdfBytes = await pdfDocTmp.save();
-          }
+          // Detectar área de firma
+          const signatureArea = await signatureService.detectSignatureArea(pdfBytes, selectedFormat);
+          
+          // Usar directamente el área detectada
+          const signedPdfBytes = await signatureService.insertSignature(
+            pdfBytes,
+            sigBytes,
+            signatureArea
+          );
 
-          // 4️⃣ Insertar la firma en el PDF
-          const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
-          const pageIndex = Math.min(finalCoords.pageIndex, pdfDoc.getPageCount() - 1);
-          const page = pdfDoc.getPage(pageIndex);
-
-          let sigImage;
-          try {
-            sigImage = await pdfDoc.embedPng(sigBytes);
-          } catch (error) {
-            console.log('Error al embedPng, intentando con embedJpg:', error);
-            sigImage = await pdfDoc.embedJpg(sigBytes);
-          }
-
-          const desiredWidth = finalCoords.width;
-          const scale = desiredWidth / sigImage.width;
-          const drawWidth = desiredWidth;
-          const drawHeight = sigImage.height * scale;
-
-          const x = finalCoords.x;
-          const y = page.getHeight() - finalCoords.y - drawHeight;
-
-          page.drawImage(sigImage, { x, y, width: drawWidth, height: drawHeight, opacity: 1 });
-
-          // Guardar el PDF firmado
-          const signedPdfBytes = await pdfDoc.save();
           const fileName = `${doc.nombre_original}-firmado.pdf`;
           
           // Guardar físicamente el archivo

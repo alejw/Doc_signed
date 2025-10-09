@@ -701,74 +701,11 @@ body.modal-open {
 
 
 
+.swal2-container {
+  z-index: 20000 !important; /* valor más alto que el modal */
+}
 
 
 
 
-        /* Footer */
-        .footer {
-            background: var(--text-900);
-            color: white;
-            padding: var(--space-6);
-            text-align: center;
-            margin-top: auto;
-        }
-
-        /* Responsive */
-        @media (max-width: 992px) {
-            .detalles-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .pdf-preview {
-                height: 400px;
-            }
-
-            .documents-grid {
-                grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
-            }
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .toggle-switch {
-                width: 280px;
-                height: 50px;
-            }
-
-            .toggle-option {
-                height: 42px;
-                font-size: 0.875rem;
-            }
-
-            .documents-grid {
-                grid-template-columns: 1fr; /* 1 columna en móviles */
-            }
-
-            .modal-header {
-                flex-direction: column;
-                padding: var(--space-4);
-            }
-
-            .btn-sign-all {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: var(--space-4);
-            }
-
-            .main-content {
-                padding: var(--space-6) var(--space-4);
-            }
-
-            .content-title {
-                font-size: 1.5rem;
-            }
-        }
+      

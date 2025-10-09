@@ -213,13 +213,28 @@ function signAllDocuments() {
         },
         body: JSON.stringify(data)
     })
+    
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            alert('Documentos firmados exitosamente');
-            window.location.reload();
+        if (data.message==='Proceso de firma completado') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.message,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Aceptar'
+            }).then(() => {
+                // 🔥 Espera a que el usuario cierre la alerta antes de recargar
+                window.location.reload();
+            });
+           
         } else {
-            alert('Error al firmar los documentos: ' + data.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Error al firmar los documentos'
+            });
+            
         }
     })
     .catch(error => {
