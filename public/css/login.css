@@ -244,6 +244,10 @@
             font-size: 20px;
         }
 
+        .feature-icon i {
+            font-size: 1.2rem; /* Ajusta el tamaño según necesites */
+        }
+
         .feature-text {
             font-size: 14px;
             font-weight: 500;
@@ -480,4 +484,8 @@
         .form-input[type="password"],
         .form-input[type="text"] {
             padding-right: 40px;
+        }
+
+        .badge-icon i {
+            font-size: 1.5rem; /* Ajusta el tamaño según necesites */
         }
