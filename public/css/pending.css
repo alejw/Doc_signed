@@ -607,6 +607,122 @@
     background: var(--text-700);
 }
 
+/* Estilo para la sección de comentarios */
+.comments {
+    margin-top: var(--space-4);
+    padding: var(--space-4);
+    background: rgba(var(--primary-rgb), 0.05);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--primary-500);
+}
+
+.comments h4 {
+    color: var(--primary-600);
+    font-size: 0.875rem;
+    margin-bottom: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.comments h4::before {
+    content: "💬";
+    font-size: 1rem;
+}
+
+.comments:empty::after {
+    content: 'Sin comentarios';
+    color: var(--text-400);
+    font-style: italic;
+    font-size: 0.875rem;
+}
+
+/* Ajuste del contenido de los comentarios */
+.comment-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-700);
+    word-break: break-word;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+/* Scrollbar personalizado para comentarios largos */
+.comment-text::-webkit-scrollbar {
+    width: 4px;
+}
+
+.comment-text::-webkit-scrollbar-track {
+    background: rgba(var(--primary-rgb), 0.05);
+}
+
+.comment-text::-webkit-scrollbar-thumb {
+    background: var(--primary-300);
+    border-radius: 2px;
+}
+
+/* Estilos renovados para la sección de comentarios */
+.comment-section {
+    margin-top: var(--space-4);
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: all var(--transition);
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--bg-light);
+    border-bottom: 1px solid var(--border);
+}
+
+.comment-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--primary-500);
+    color: white;
+    border-radius: var(--radius-md);
+}
+
+.comment-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-900);
+    margin: 0;
+}
+
+.comment-content {
+    padding: var(--space-4);
+}
+
+.comment-text {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text-700);
+    margin: 0;
+}
+
+.comment-empty {
+    padding: var(--space-4);
+    text-align: center;
+    color: var(--text-500);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+/* Hover effect */
+.comment-section:hover {
+    border-color: var(--primary-500);
+    box-shadow: var(--shadow-md);
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     .detalles-grid {
@@ -708,4 +824,3 @@ body.modal-open {
 
 
 
-      

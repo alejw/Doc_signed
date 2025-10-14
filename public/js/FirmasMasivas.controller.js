@@ -232,6 +232,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const representanteLegalSelect = document.getElementById('representanteLegalSelect');
       formData.append('representanteLegal', representanteLegalSelect.value);
 
+      const commentsInput = document.getElementById('comments');
+      formData.append('comments', commentsInput ? commentsInput.value : '');
+
       uploadedFiles.forEach((file) => {
         formData.append('files', file);
       });

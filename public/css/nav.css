@@ -1,12 +1,19 @@
 /*ENCABEZADO*/
 .header-nav-gen {
-  position: relative;
+  position: fixed; /* Cambiamos de relative a fixed */
+  width: 100%; /* Aseguramos que ocupe todo el ancho */
+  top: 0; /* Lo fijamos al tope */
+  left: 0; /* Lo fijamos a la izquierda */
   z-index: 100;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(12px);
   padding: var(--space-3) 0;
   box-shadow: var(--shadow-md);
   border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+body {
+  padding-top: 72px; /* Ajusta este valor según la altura de tu nav */
 }
 
 .header-content-nav {

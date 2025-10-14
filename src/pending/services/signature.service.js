@@ -1,170 +1,110 @@
-const tesseract = require('node-tesseract-ocr');
 const PDFLib = require('pdf-lib');
 const fs = require('fs').promises;
 const path = require('path');
 const sharp = require('sharp');
-const { fromBuffer } = require('pdf2pic');
-const os = require('os'); // 🔹 carpeta temporal del sistema
 
 class SignatureService {
   constructor() {
-    this.config = {
-      lang: "spa",
-      oem: 1,
-      psm: 6, // 🔹 modo lectura más preciso
-      binary: 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe' // Ruta Tesseract en Windows
-    };
-
-    // Palabras clave que delimitan la zona de firma
-    this.signaturePatterns = [
-      "Atentamente",
-      "Gerente General / Representante Legal",
-      "Representante Legal"
-    ];
-
-    // Coordenadas por defecto y por tipo de documento
-    this.signatureFormats = {
-      default: {
-        pageIndex: 0,
-        x: 200,
-        y: 120,
-        width: 200,
-        height: 80
-      },
+    // Definir puntos de anclaje y offsets
+    this.anchorPoints = {
       GCLPPR: {
-        pageIndex: 0,
-        x: 200,
-        y: 100,
-        width: 200,
-        height: 80
+        searchText: 'Nombre',  // Cambiamos el punto de anclaje a "Nombre"
+        offsetX: 0,           // Centrado horizontalmente
+        offsetY: 20,          // 20 puntos arriba de la línea
+        width: 120,          // Ancho más reducido
+        height: 35           // Alto ajustado
+      },
+      default: {
+        // Mantener configuración por defecto como respaldo
+        searchText: 'Atentamente',
+        offsetX: 0,
+        offsetY: -30,
+        width: 150,
+        height: 40
       }
     };
   }
 
-  /**
-   * Detecta la posición de la firma mediante OCR (última página)
-   */
   async detectSignatureArea(pdfBuffer, documentType = 'default') {
-    // ✅ Carpeta temporal fuera de OneDrive
-    const tempDir = path.join(os.tmpdir(), 'doc_signed_temp');
-    const tempFile = path.join(tempDir, `page-${Date.now()}-${Math.floor(Math.random() * 10000)}.png`);
-
     try {
-      await fs.mkdir(tempDir, { recursive: true });
-
-      // Cargar documento completo
       const pdfDoc = await PDFLib.PDFDocument.load(pdfBuffer);
-      const totalPages = pdfDoc.getPageCount();
-      const lastPageIndex = totalPages - 1;
-      const page = pdfDoc.getPage(lastPageIndex);
-      const pageHeight = page.getHeight();
-      const pageWidth = page.getWidth();
-
-      // Convertir la última página del PDF a imagen
-      const convert = fromBuffer(pdfBuffer, {
-        density: 300,
-        format: "png",
-        width: 1600,
-        height: 2200,
-        quality: 100,
-        savePath: tempDir,
-        saveFilename: path.basename(tempFile, '.png')
-      });
-
-      let result;
-      try {
-        result = await convert(totalPages); // 🔹 última página
-      } catch (err) {
-        console.error('⚠️ Error al convertir PDF a imagen:', err.message);
-        return this.signatureFormats[documentType] || this.signatureFormats.default;
+      const lastPage = pdfDoc.getPage(pdfDoc.getPageCount() - 1);
+      const { width: pageWidth, height: pageHeight } = lastPage.getSize();
+      
+      // Obtener el texto de la página
+      const text = await this.extractTextFromPage(lastPage);
+      
+      // Configuración específica del documento
+      const config = this.anchorPoints[documentType] || this.anchorPoints.default;
+      
+      // Buscar punto de anclaje
+      const anchorPosition = await this.findAnchorPosition(lastPage, config.searchText);
+      
+      if (!anchorPosition) {
+        console.log('⚠️ Texto de anclaje no encontrado, usando posición por defecto');
+        return {
+          pageIndex: pdfDoc.getPageCount() - 1,
+          x: (pageWidth - config.width) / 2,
+          y: 150,
+          width: config.width,
+          height: config.height
+        };
       }
 
-      const imageBuffer = await fs.readFile(result.path);
-
-      // Preprocesar imagen para mejorar OCR
-      const enhancedImage = await sharp(imageBuffer)
-        .grayscale()
-        .threshold(180)
-        .toBuffer();
-
-      // OCR con Tesseract
-      const text = await tesseract.recognize(enhancedImage, this.config);
-      console.log('🧾 Texto OCR detectado:\n', text);
-
-      // Normalizar texto y separar líneas
-      const normalize = s =>
-        s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim();
-
-      const lines = text.split('\n').map(l => normalize(l)).filter(Boolean);
-
-      let atenY = -1;
-      let gerenteY = -1;
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line.includes('ATENTAMENTE')) atenY = i;
-        if (line.includes('GERENTE') || line.includes('REPRESENTANTE')) gerenteY = i;
-      }
-
-      // Si no detecta anclas, usar coordenadas por defecto
-      if (atenY === -1 || gerenteY === -1) {
-        console.log('⚠️ No se detectaron marcadores, usando coordenadas por defecto.');
-        return this.signatureFormats[documentType] || this.signatureFormats.default;
-      }
-
-      // Calcular posición media
-      const lineHeight = pageHeight / lines.length;
-      const middleY = ((atenY + gerenteY) / 2) * lineHeight;
-
-      // 🔹 Ajuste fino para subir la firma un poco (en puntos PDF)
-      const verticalOffset = 100;
-
-      const coords = {
-        pageIndex: lastPageIndex,
-        x: (pageWidth - 200) / 2, // centrado horizontalmente
-        y: Math.min(pageHeight - middleY + verticalOffset, pageHeight - 100),
-        width: 200,
-        height: 80
+      // Calcular posición final de la firma
+      const signaturePosition = {
+        pageIndex: pdfDoc.getPageCount() - 1,
+        x: anchorPosition.x + config.offsetX,
+        y: anchorPosition.y + config.offsetY,
+        width: config.width,
+        height: config.height
       };
 
-      console.log('📍 Coordenadas detectadas (ajustadas):', coords);
-      return coords;
+      console.log('📍 Posición de firma calculada:', signaturePosition);
+      return signaturePosition;
 
     } catch (error) {
       console.error('❌ Error detectando área de firma:', error);
-      return this.signatureFormats[documentType] || this.signatureFormats.default;
-    } finally {
-      // Limpieza de archivo temporal
-      try {
-        await fs.unlink(tempFile);
-      } catch { }
+      throw error;
     }
   }
 
-  /**
-   * Inserta la firma en el PDF
-   */
+  async findAnchorPosition(page, searchText) {
+    // Implementación básica - pdf-lib no proporciona directamente posiciones de texto
+    // Aquí podrías implementar la lógica de búsqueda de texto usando operadores de PDF
+    const { width, height } = page.getSize();
+    
+    // Por ahora, retornamos una posición estimada
+    return {
+      x: width / 2 - 75, // Centrado
+      y: height / 3     // Aproximadamente donde suele estar "Atentamente"
+    };
+  }
+
+  async extractTextFromPage(page) {
+    // Esta función se puede implementar más adelante usando pdf-text-extract o pdfjs-dist
+    // Por ahora retornamos null ya que pdf-lib no proporciona esta funcionalidad
+    return null;
+  }
+
   async insertSignature(pdfBuffer, signatureBuffer, coords) {
     try {
-      if (!coords || typeof coords.pageIndex === 'undefined') {
-        throw new Error('Coordenadas inválidas para insertar firma.');
-      }
-
       const pdfDoc = await PDFLib.PDFDocument.load(pdfBuffer);
       const page = pdfDoc.getPage(coords.pageIndex);
 
-      // Procesar la imagen de la firma
+      // Procesar la firma para mejor calidad
       const processedSignature = await sharp(signatureBuffer)
         .resize(coords.width, coords.height, {
           fit: 'contain',
           background: { r: 255, g: 255, b: 255, alpha: 0 }
         })
+        .sharpen()
+        .gamma(1.1)
         .png()
         .toBuffer();
 
       const signature = await pdfDoc.embedPng(processedSignature);
 
-      // Dibujar la firma
       page.drawImage(signature, {
         x: coords.x,
         y: coords.y,
@@ -172,7 +112,6 @@ class SignatureService {
         height: coords.height
       });
 
-      console.log(`✅ Firma insertada correctamente en X:${coords.x}, Y:${coords.y}`);
       return await pdfDoc.save();
 
     } catch (error) {

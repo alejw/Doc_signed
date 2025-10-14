@@ -3,7 +3,7 @@ const config = require('../../../db.js');
 
 console.log('informacion de req.user:');
 
-async function saveSolicitud(id_solicitante, id_firmante, tipo_solicitud) {
+async function saveSolicitud(id_solicitante, id_firmante, tipo_solicitud, comentarios) {
     try {
         const pool = await config.poolPromise;//Aqui obtengo el pool de conexiones
         const result = await pool.request()//aqui creo una nueva solicitud
@@ -11,7 +11,8 @@ async function saveSolicitud(id_solicitante, id_firmante, tipo_solicitud) {
             .input('id_firmante', sql.Int, id_firmante)
             .input('tipo_solicitud', sql.VarChar, tipo_solicitud)
             .input('fechaSolicitud', sql.DateTime, new Date())
-            .query('INSERT INTO Solicitudes (id_solicitante, id_firmante, tipo_solicitud, fecha_solicitud) VALUES (@id_solicitante, @id_firmante, @tipo_solicitud, @fechaSolicitud); SELECT SCOPE_IDENTITY() AS id;');
+            .input('comentarios', sql.VarChar, comentarios)
+            .query('INSERT INTO Solicitudes (id_solicitante, id_firmante, tipo_solicitud, fecha_solicitud, desc_comentario) VALUES (@id_solicitante, @id_firmante, @tipo_solicitud, @fechaSolicitud, @comentarios); SELECT SCOPE_IDENTITY() AS id;');
 
         return result.recordset[0].id;
         

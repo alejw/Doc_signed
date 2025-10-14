@@ -17,7 +17,9 @@ async function getPendingDocuments(userId, status = 'PENDIENTE') {
                 s.tipo_solicitud,
                 s.fecha_solicitud,
                 u.nombre_usuario,
-                u.cedula
+                u.cedula,
+                s.desc_comentario
+                
                 FROM solicitudes AS s
                 JOIN Usuario AS u
                 ON s.id_solicitante = u.id_registro_usuarios

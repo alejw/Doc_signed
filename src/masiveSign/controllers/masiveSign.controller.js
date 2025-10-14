@@ -33,7 +33,7 @@ async function uploadFiles(req, res) {
       };
     });
     const tipo_solicitud = 'masiva'
-    const idSolicitud = await saveSolicitud(req.user.id_registro_usuarios, req.body.representanteLegal, tipo_solicitud);
+    const idSolicitud = await saveSolicitud(req.user.id_registro_usuarios, req.body.representanteLegal, tipo_solicitud, req.body.comments || '');
 
     for (let index = 0; index < processedFiles.length; index++) {
       await saveDetalles(idSolicitud, processedFiles[index].url, req.body.formato);
