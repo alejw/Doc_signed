@@ -24,12 +24,22 @@ function toggleFilter(filter) {
     window.location.href = `/api/pending?status=${status}`;
 }
 
-// Agregar la función sumarUnDia al inicio del archivo
-function sumarUnDia(fecha) {
+// Reemplazar la función sumarUnDia por esta nueva función formatearFecha
+function formatearFecha(fecha) {
     if (!fecha) return 'Sin fecha';
     const date = new Date(fecha);
-    date.setDate(date.getDate() + 1);
-    return date.toLocaleDateString('es-ES');
+    // Ajustar la fecha sumando 5 horas para compensar la diferencia horaria
+    date.setHours(date.getHours() + 5);
+    
+    return date.toLocaleString('es-CO', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'America/Bogota'
+    });
 }
 
 //desde aqui manejamos el modal y las interacciones de la vista de pendientes
@@ -79,18 +89,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (data.detalles && data.detalles.length > 0) {
                     const detallesHtml = data.detalles.map(det => {
-                        // Asegurarse de que estamos usando la URL correcta
-                        const documentUrl = estado === 'FIRMADO' ? 
-                            det.url_archivo : // Ya viene como url_archivo_firmado del backend
-                            det.url_archivo;  // URL original
-
-                        console.log('URL a mostrar:', documentUrl);
+                        // Determinar la URL y el nombre del documento según el estado
+                        const documentUrl = estado === 'FIRMADO' ? det.url_archivo : det.url_archivo;
+                        const nombreDocumento = det.nombre_original || 'Documento sin nombre';
+                        const nombreMostrado = estado === 'FIRMADO' ? 
+                            `${nombreDocumento.replace('.pdf', '')}` : 
+                            nombreDocumento;
 
                         return `
                             <div class="detalle-section">
                                 <div class="detalle-header">
-                                    <h3>Documento ${det.nombre_original}</h3>
-                                    <span class="fecha">${sumarUnDia(det.fecha_solicitud)}</span>
+                                    <h3>${nombreMostrado}</h3>
+                                    <span class="fecha">
+                                        ${estado === 'FIRMADO' ? 'Fecha de firma: ' : 'Fecha de solicitud: '}
+                                        ${formatearFecha(estado === 'FIRMADO' ? det.fecha_firma : det.fecha_solicitud)}
+                                    </span>
                                 </div>   
                                 <div class="detalle-content">
                                     <p><strong>ID solicitud:</strong> ${det.id_solicitud}</p>
@@ -98,10 +111,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <p><strong>Estado:</strong> ${det.estado_documento}</p>
                                     <div class="document-actions">
                                         <button class="btn-preview" onclick="previewPDF('${documentUrl}')">
-                                            Ver documento
+                                            <i class="fas fa-eye"></i> Ver documento
                                         </button>
                                         <a href="${documentUrl}" target="_blank" class="btn-download">
-                                            Descargar PDF
+                                            <i class="fas fa-download"></i> Descargar PDF
                                         </a>
                                     </div>
                                 </div>

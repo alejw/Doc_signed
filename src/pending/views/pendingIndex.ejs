@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/css/nav.css">
     <link rel="icon" type="image/png" href="/images/logo_docsigned.png">
     <title>NewStetic - DocSigned</title>
+    
 </head>
  <%- include('../../components/nav.ejs') %>
 <body>
@@ -69,12 +70,24 @@
                             <div class="document-header">
                                 <div>
                                     <div class="document-title">ID Solicitud: <%= doc.id_registro_solicitud %></div>
-                                    <div class="document-date">Fecha: 
+                                    <div class="document-date">
+                                        <%= doc.estado_solicitud === 'FIRMADO' ? 'Fecha de firma: ' : 'Fecha de solicitud: ' %>
                                         <%= (() => { 
-                                                const fecha = new Date(doc.fecha_solicitud); 
-                                                fecha.setDate(fecha.getDate() + 1); 
-                                                return fecha.toLocaleDateString('es-ES'); 
-                                            })() %>
+                                            // Convertir la fecha UTC a la zona horaria local de Colombia
+                                            const fecha = new Date(doc.fecha_mostrar);
+                                            // Ajustar la fecha sumando 5 horas para compensar la diferencia horaria
+                                            fecha.setHours(fecha.getHours() + 5);
+                                            
+                                            return fecha.toLocaleString('es-CO', {
+                                                year: 'numeric',
+                                                month: '2-digit',
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true,
+                                                timeZone: 'America/Bogota'
+                                            });
+                                        })() %>
                                     </div>
 
                                 </div>
@@ -95,6 +108,7 @@
                                     <div class="comment-content">
                                         <p class="comment-text"><%= doc.desc_comentario %></p>
                                     </div>
+
                                 <% } else { %>
                                     <div class="comment-empty">
                                         No hay comentarios para esta solicitud
@@ -102,7 +116,6 @@
                                 <% } %>
                             </div>
 
-                            
                         </div>
                     <% }); %>
                     <% } else { %>

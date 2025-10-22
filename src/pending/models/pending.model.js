@@ -16,10 +16,16 @@ async function getPendingDocuments(userId, status = 'PENDIENTE') {
                 s.estado_solicitud,
                 s.tipo_solicitud,
                 s.fecha_solicitud,
+                CASE 
+                    WHEN s.estado_solicitud = 'FIRMADO' THEN 
+                        (SELECT TOP 1 fecha_firma 
+                         FROM Documentos_Firmados 
+                         WHERE id_solicitud = s.id_registro_solicitud)
+                    ELSE s.fecha_solicitud
+                END as fecha_mostrar,
                 u.nombre_usuario,
                 u.cedula,
                 s.desc_comentario
-                
                 FROM solicitudes AS s
                 JOIN Usuario AS u
                 ON s.id_solicitante = u.id_registro_usuarios
@@ -32,29 +38,24 @@ async function getPendingDocuments(userId, status = 'PENDIENTE') {
     }
 }
 
-
 async function getDetallesDocuments(idSolicitud, estado) {
-    const pool = await config.poolPromise;
-    const request = pool.request()
-        .input('idSolicitud', sql.Int, idSolicitud);
-
     try {
         const pool = await config.poolPromise;
-        console.log('solicitud recibido:', idSolicitud);
         let query;
         if (estado === 'FIRMADO') {
             query = `
                 SELECT 
-                    id_detalle_firmado,
-                    id_solicitud,
-                    id_detalle,
-                    fecha_solicitud,
-                    url_archivo_firmado as url_archivo,  -- URL del documento firmado,
-                    fecha_firma,
+                    df.id_detalle_firmado,
+                    df.id_solicitud,
+                    df.id_detalle,
+                    sd.fecha_solicitud,
+                    df.url_archivo_firmado as url_archivo,
+                    df.fecha_firma,
+                    ds.tipo_documento as nombre_original,  -- Agregamos el nombre original
                     'FIRMADO' as estado_documento
                 FROM Documentos_Firmados df
-                INNER JOIN solicitudes sd 
-                ON df.id_solicitud = sd.id_registro_solicitud
+                INNER JOIN solicitudes sd ON df.id_solicitud = sd.id_registro_solicitud
+                INNER JOIN Detalles_solicitudes ds ON df.id_detalle = ds.id_registro_detalles
                 WHERE df.id_solicitud = @idSolicitud
             `;
         } else {
@@ -75,13 +76,7 @@ async function getDetallesDocuments(idSolicitud, estado) {
             .input('idSolicitud', sql.Int, idSolicitud)
             .query(query);
 
-        // Mapear los resultados para asegurar que las URLs sean correctas
-        const mappedResults = result.recordset.map(record => ({
-            ...record,
-            url_archivo: estado === 'FIRMADO' ? record.url_archivo : record.url_archivo
-        }));
-
-        return mappedResults;
+        return result.recordset;
     } catch (error) {
         console.error('Error al obtener los detalles:', error);
         throw error;
@@ -124,7 +119,6 @@ async function countSolicitedDocuments(userId) {
     }
 }
 
-// Función para crear documento firmado
 async function createDocumentSigned(url, formato, idFirmante, idDetalleSolicitud,idSolicitud) {
     try {
         console.log('Creando documento firmado:', {
@@ -138,15 +132,14 @@ async function createDocumentSigned(url, formato, idFirmante, idDetalleSolicitud
         const pool = await config.poolPromise;
         const result = await pool.request()
             .input('url', sql.VarChar, url)
-            .input('tipo_documento', sql.VarChar, formato)
             .input('idFirmante', sql.Int, idFirmante)
             .input('idDetalleSolicitud', sql.Int, idDetalleSolicitud)
             .input('idSolicitud', sql.Int, idSolicitud)
             .query(`
                 INSERT INTO Documentos_Firmados 
-                (id_detalle, url_archivo_firmado, id_firmante, tipo_documento, fecha_firma, id_solicitud)
+                (id_detalle, url_archivo_firmado, id_firmante, fecha_firma, id_solicitud)
                 VALUES 
-                (@idDetalleSolicitud, @url, @idFirmante, @tipo_documento, GETDATE(), @idSolicitud);
+                (@idDetalleSolicitud, @url, @idFirmante, GETDATE(), @idSolicitud);
 
                 SELECT SCOPE_IDENTITY() AS id_detalle_firmado;
             `);
@@ -159,7 +152,6 @@ async function createDocumentSigned(url, formato, idFirmante, idDetalleSolicitud
     }
 }
 
-// Función para cambiar estado de la solicitud
 async function changeStateApplication(idSolicitud) {
     try {
         const pool = await config.poolPromise;
