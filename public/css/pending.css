@@ -252,10 +252,18 @@
         }
 
         .document-title {
-            font-weight: 600;
-            color: var(--text-900);
-            margin-bottom: var(--space-2);
-            font-size: 1.0625rem;
+            display: inline-flex;
+            align-items: center;
+            padding: 7px;
+            gap: 0.25rem;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #1e293b;
+            background: var(--primary-800);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(250, 204, 21, 0.2);
+            transition: all 0.2s ease;
         }
 
         .document-date {
@@ -473,6 +481,39 @@
 }
 
 /* Contenido del detalle */
+
+/* Contenido del detalle - Versión mejorada */
+.solicitud-id {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 7px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    color: #1e293b;
+    background: var(--primary-800);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.solicitud-id::before {
+    margin-right: var(--space-1);
+    opacity: 0.8;
+}
+
+/* Estilo cuando el estado es PENDIENTE */
+.estado-PENDIENTE .solicitud-id {
+    background-color: var(--warning-500);
+}
+
+/* Estilo cuando el estado es FIRMADO */
+.estado-FIRMADO .solicitud-id {
+    background-color: var(--success-500);
+}
+
 .detalle-content p {
     margin: 0 0 var(--space-3) 0;
     font-size: 0.9375rem;

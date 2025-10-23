@@ -104,9 +104,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                         ${estado === 'FIRMADO' ? 'Fecha de firma: ' : 'Fecha de solicitud: '}
                                         ${formatearFecha(estado === 'FIRMADO' ? det.fecha_firma : det.fecha_solicitud)}
                                     </span>
-                                </div>   
+                                </div>  
+                                
                                 <div class="detalle-content">
-                                    <p><strong>ID solicitud:</strong> ${det.id_solicitud}</p>
+                                    <div><p><strong>ID:</strong> <span class="solicitud-id">${det.id_solicitud}</span></p></div>
                                     <p><strong>ID detalle:</strong> ${det.estado_documento === 'FIRMADO' ? det.id_detalle_firmado : det.id_registro_detalles}</p>
                                     <p><strong>Estado:</strong> ${det.estado_documento}</p>
                                     <div class="document-actions">

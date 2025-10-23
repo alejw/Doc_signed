@@ -38,7 +38,7 @@ app.use('/api/masivesign', authenticateToken, masiveRouter);
 app.use('/api/sign', authenticateToken, singRouter);
 app.use('/api/pending', authenticateToken, pendingRouter);
 app.use('/api/userProfile', authenticateToken, userProfileRouter);
-app.use('/uploads', express.static(path.join(__dirname, './uploads')));
+app.use('/uploads', authenticateToken, express.static(path.join(__dirname, './uploads')));
  
 app.listen(port, () => {
   console.log(`Servidor Express escuchando en http://localhost:${port}`);
