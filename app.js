@@ -38,8 +38,72 @@ app.use('/api/masivesign', authenticateToken, masiveRouter);
 app.use('/api/sign', authenticateToken, singRouter);
 app.use('/api/pending', authenticateToken, pendingRouter);
 app.use('/api/userProfile', authenticateToken, userProfileRouter);
-app.use('/uploads', authenticateToken, express.static(path.join(__dirname, './uploads')));
- 
+
+// Modificar el middleware de archivos para un mejor manejo
+const serveFileMiddleware = (req, res, next) => {
+    console.log('Procesando archivo:', req.path);
+    
+    // Decodificar URL para manejar caracteres especiales
+    const decodedPath = decodeURIComponent(req.path);
+    const filePath = path.join(__dirname, 'uploads', decodedPath);
+    
+    console.log('Ruta completa del archivo:', filePath);
+    
+    // Verificar si el archivo existe
+    if (!require('fs').existsSync(filePath)) {
+        console.error('Archivo no encontrado:', filePath);
+        return res.status(404).json({
+            error: 'Archivo no encontrado',
+            path: decodedPath
+        });
+    }
+
+    const ext = path.extname(decodedPath).toLowerCase();
+    const mimeTypes = {
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.pdf': 'application/pdf'
+    };
+
+    const contentType = mimeTypes[ext];
+    if (!contentType) {
+        console.warn('Tipo de archivo no reconocido:', ext);
+        return res.status(415).json({
+            error: 'Tipo de archivo no soportado',
+            extension: ext
+        });
+    }
+
+    // Establecer cabeceras
+    res.set({
+        'Content-Type': contentType,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    });
+
+    next();
+};
+
+// Configurar rutas de archivos estáticos
+app.use('/uploads', 
+    (req, res, next) => {
+        console.log('Accediendo a uploads:', req.url);
+        next();
+    },
+    serveFileMiddleware, 
+    express.static(path.join(__dirname, 'uploads'), {
+        dotfiles: 'deny',
+        etag: false,
+        index: false,
+        maxAge: '0'
+    })
+);
+
+// Mover esta ruta después de las rutas estáticas
+app.use('/api/pending', authenticateToken, pendingRouter);
+
 app.listen(port, () => {
   console.log(`Servidor Express escuchando en http://localhost:${port}`);
 });
